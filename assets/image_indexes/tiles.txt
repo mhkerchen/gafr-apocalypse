@@ -1,0 +1,37 @@
+// **KEY: NAME, INDEX, XCOORD_OF_IMAGE, YCOORD_OF_IMAGE. WHITESPACE NEUTRAL.**
+
+BLACK,               0, 0, 0
+FLOOR,               1, 5, 1
+WALL,                2, 4, 3
+DOOR,                3, 0, 5
+PLAYER,              4, 6, 6
+CHEST,               5, 2, 6   
+POINT_OF_INTEREST,   6, 12, 7
+PORTAL,              7, 11, 9
+CHEST_OPEN,          8, 2, 7
+EDITMODE_CURSOR,     9, 3, 18
+//
+   
+NOTHING,             10, 1, 0 
+WALL_PASSABLE,       11, 4, 3
+WALL2,               12, 8, 2
+WALL2_PASSABLE,      13, 8, 2
+//
+DOOR_OPEN,           20, 0, 5 
+DOOR_CLOSED,         21, 1, 5 
+GREEN_DOOR_OPEN,     23, 3, 10 
+GREEN_DOOR_CLOSED,   24, 2, 10 
+BLUE_DOOR_OPEN,      26, 3, 11 
+BLUE_DOOR_CLOSED,    27, 2, 11 
+RED_DOOR_OPEN,       29, 3, 12 
+RED_DOOR_CLOSED,     30, 2, 12 
+//
+GREEN_CHEST_LOCKED,  40, 4, 5 
+GREEN_KEY,           41, 5, 5 
+BLUE_CHEST_LOCKED,   42, 4, 6
+BLUE_KEY,            43, 5, 6
+RED_CHEST_LOCKED,    44, 4, 7 
+RED_KEY,             45, 5, 7 
+GLYPH_ENGRAVED,      50, 1, 6 
+GLYPH_GLOW,          51, 0, 7
+GLYPH_GLOWIER,        52, 1, 7

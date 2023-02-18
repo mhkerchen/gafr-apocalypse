@@ -1,0 +1,10 @@
+10,2,2, {spawn:true}
+7,8,6, {teleport:13,6}
+5,10,10, {inventory:65x1,66x3}
+5,10,1, {inventory:66x2,69x1}
+50,2,0,{}
+50,9,7,{}
+50,13,5,{}
+7,13,6,{teleport:8,6}
+41,12,10,{pickup_item:green_key}
+24,6,9,{destination:dungeon_map_2,1,1;locked:green_key}
