@@ -1,0 +1,23 @@
+// KEY: name, index, x_on_image, y_on_image
+BACKGROUND, 0, 5, 1
+RED, 1, 1, 0
+ORANGE, 2, 2, 0
+YELLOW, 3, 4, 0
+GREEN, 4, 6, 0
+TURQUOISE, 5, 8, 0
+TEAL, 6, 7, 0
+INDIGO, 7, 0, 1
+PURPLE, 8, 1, 1
+MAGENTA, 9, 2, 1
+GRAY, 10, 4, 1
+GOLD, 11, 3, 0
+PINK, 12, 0, 0
+WHITE, 13, 3, 1
+BLUE, 14, 9, 0
+SLIME, 15, 5, 0
+X, 20, 6, 1
+SELECTOR, 21, 7, 1
+HIGHLIGHT, 22, 5, 1
+UNMUTED, 23, 8, 1
+MUTED, 24, 9, 1
+//comment
