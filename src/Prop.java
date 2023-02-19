@@ -77,13 +77,13 @@ public class Prop {
         int teleportDestY = Integer.parseInt(metadata.get("teleport").trim().split(",")[1]);
         Game.setCharX(teleportDestX);
         Game.setCharY(teleportDestY);
-        Game.clearFog();
+        Fog.clearFog();
         return true;
       } 
       else if (this.metadata.containsKey("destination")) {
         return this.doDestination();
       }else if (this.metadata.containsKey("pickup_item")) {
-        if (Game.addToInventory(metadata.get("pickup_item").trim()) == true) {
+        if (Inventory.addToInventory(metadata.get("pickup_item").trim()) == true) {
           // successful add, hide this item
           this.exists = false;
         } 
@@ -97,11 +97,17 @@ public class Prop {
       if (this.metadata.containsKey("locked") ) {
         doUnlock();
       }
+      if (this.metadata.containsKey("examine") ) {
+        doExamine();
+      }
+      if (this.metadata.containsKey("inventory") ) {
+        System.out.println(this.metadata.get("inventory"));
+      }
       return false;
     }
 
     public boolean doUnlock() {
-        if ( !Game.inventoryTake(metadata.get("locked")) ) {
+        if ( !Inventory.inventoryTake(metadata.get("locked")) ) {
           // you don't have it, so no door for you
           System.out.println("You don't have the key.");
           return false;
@@ -111,6 +117,17 @@ public class Prop {
         this.metadata.put("unlocked", "its_open");
         this.icon = this.icon - 1; // The standard for switching to the "unlocked" version.
         return true;
+
+    }
+
+    public boolean doExamine() {
+      if (this.metadata.containsKey("examine")) {
+        Game.dialogueBox.addMultipleLines(this.metadata.get("examine"));
+        return true;
+      } else {
+        System.out.println("No examine");
+        return false;
+      }
 
     }
 

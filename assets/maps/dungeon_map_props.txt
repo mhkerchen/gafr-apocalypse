@@ -1,10 +1,10 @@
-10,2,2, {spawn:true}
-7,8,6, {teleport:13,6}
-5,10,10, {inventory:65x1,66x3}
-5,10,1, {inventory:66x2,69x1}
-50,2,0,{}
-50,9,7,{}
-50,13,5,{}
-7,13,6,{teleport:8,6}
-41,12,10,{pickup_item:green_key}
-24,6,9,{destination:dungeon_map_2,1,1;locked:green_key}
+NOTHING,2,2, {spawn:true}
+PORTAL,8,6, {teleport:13,6}
+CHEST,10,10, {inventory:65x1,66x3}
+CHEST,10,1, {inventory:66x2,69x1}
+GLYPH_ENGRAVED,2,0,{examine:You look at the engraving. #You can't figure out what it says.}
+GLYPH_ENGRAVED,9,7,{examine:You look at the engraving. #You can't figure out what it says.}
+GLYPH_ENGRAVED,13,5,{examine:You look at the engraving. #You can't figure out what it says.}
+PORTAL,13,6,{teleport:8,6}
+GREEN_KEY,12,10,{pickup_item:green_key}
+GREEN_DOOR_CLOSED,6,9,{destination:dungeon_map_2,1,1;locked:green_key}
