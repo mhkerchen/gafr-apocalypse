@@ -2,9 +2,9 @@ NOTHING,2,2, {spawn:true}
 PORTAL,8,6, {teleport:13,6}
 CHEST,10,10, {inventory:65x1,66x3}
 CHEST,10,1, {inventory:66x2,69x1}
-WALL_GLYPH,2,0,{}
-WALL_GLYPH,9,7,{examine:What a strange symbol.}
-GLYPH_ENGRAVED,13,5,{examine:What a strange symbol.}
+WALL_GLYPH,2,0,
+WALL_GLYPH,9,7,
+GLYPH_ENGRAVED,13,5,
 PORTAL,13,6,{teleport:8,6}
 GREEN_KEY,12,10,{pickup_item:green_key}
 GREEN_DOOR_CLOSED,6,9,{destination:dungeon_map_2,1,1;locked:green_key}

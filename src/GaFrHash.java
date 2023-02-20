@@ -1,5 +1,5 @@
 // GaFr doesn't play nice with HashMaps?
-// Fine, I'll do it myself
+// Fine, I'll do it myself.
 /*
 
 Cons of GaFr Hash:

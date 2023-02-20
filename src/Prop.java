@@ -158,4 +158,82 @@ public class Prop {
         return false;
         
     }
+
+
+
+
+    // LOAD FUNCTIONS
+
+
+    
+  // Given a text file string formatted properly (see props_example.txt), will parse it into the Props list.
+  // Props are any tile which can be interacted with.
+  static Prop[] readProps(String propsString) {
+    String[] propsArray = propsString.split("\n");
+    String[] lineParser;
+    Prop[] newProps = new Prop[propsArray.length];
+
+
+    for (int i = 0; i < propsArray.length; i++) {
+      lineParser = propsArray[i].split(",", 4);
+
+      // if there are enough arguments, create a new prop
+      if (lineParser.length > 3) {
+        try {
+          newProps[i] = new Prop(
+            i,
+            Integer.parseInt(lineParser[0].trim()),
+            Integer.parseInt(lineParser[1].trim()),
+            Integer.parseInt(lineParser[2].trim())
+            );
+            newProps[i].setMetadata(lineParser[3].trim());
+        } catch (Exception e ){
+          if (Game.tileDict.containsKey(lineParser[0].trim())) {
+
+            newProps[i] = new Prop(
+              i,
+              Game.tileDict.get(lineParser[0].trim()),
+              Integer.parseInt(lineParser[1].trim()),
+              Integer.parseInt(lineParser[2].trim())
+              );
+            newProps[i].setMetadata(lineParser[3].trim());
+          } else {
+            // this is a custom prop
+            newProps[i] = customProp(i, lineParser);
+          }
+        }
+
+
+        // parses and stores the metadata
+
+        // stores the prop's ID in the props map
+        Game.propsMap[newProps[i].getX()][newProps[i].getY()] = i;
+      }
+
+    }
+
+    return newProps;
+
+  }
+
+
+  public static Prop customProp(int i, String[] lineParser) {
+    Prop custom;
+    if (lineParser[0].trim().equals("WALL_GLYPH")) {
+      custom = new Prop(
+        i,
+        Game.tileDict.get("GLYPH_ENGRAVED"),
+        Integer.parseInt(lineParser[1].trim()),
+        Integer.parseInt(lineParser[2].trim())
+        );
+      custom.setMetadata("{examine:What a strange symbol...}");
+
+    } else {
+      System.out.println("No prop with name "+lineParser[0].trim()+" found.");
+      custom = null;
+    }
+
+    return custom;
+
+  }
 }
