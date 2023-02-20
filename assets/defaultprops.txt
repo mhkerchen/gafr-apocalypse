@@ -1,0 +1,3 @@
+// Currently wholly unused
+
+WALL_GLYPH, GLYPH_ENGRAVED, {examine:What a strange symbol.}

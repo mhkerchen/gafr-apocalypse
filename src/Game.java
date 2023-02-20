@@ -25,7 +25,6 @@ public class Game extends GFGame
   Gridwidth = 50
   GFStamp[][] tileImages = new GFTexture("assets/tileset.png").splitIntoTilesBySize2D(16,16);
   
-
   32-size tile:
   gridHeight = 15
   gridWidth = 24
@@ -86,7 +85,7 @@ public class Game extends GFGame
 
     static GFStamp[] playerImgs;// = new GFStamp[16];
 
-    static HashMap<String, Integer> tileDict = new HashMap<String, Integer>();
+    static GaFrHash<String, Integer> tileDict = new GaFrHash<String, Integer>();
 
   // Initialization
   {
@@ -268,20 +267,26 @@ public class Game extends GFGame
             Integer.parseInt(lineParser[0].trim()),
             Integer.parseInt(lineParser[1].trim()),
             Integer.parseInt(lineParser[2].trim())
-          );
+            );
+            newProps[i].setMetadata(lineParser[3].trim());
         } catch (Exception e ){
-          
-          newProps[i] = new Prop(
-            i,
-            Game.tileDict.get(lineParser[0].trim()),
-            Integer.parseInt(lineParser[1].trim()),
-            Integer.parseInt(lineParser[2].trim())
-          );
+          if (Game.tileDict.containsKey(lineParser[0].trim())) {
+
+            newProps[i] = new Prop(
+              i,
+              Game.tileDict.get(lineParser[0].trim()),
+              Integer.parseInt(lineParser[1].trim()),
+              Integer.parseInt(lineParser[2].trim())
+              );
+            newProps[i].setMetadata(lineParser[3].trim());
+          } else {
+            // this is a custom prop
+            newProps[i] = customProp(i, lineParser);
+          }
         }
 
 
         // parses and stores the metadata
-        newProps[i].setMetadata(lineParser[3].trim());
 
         // stores the prop's ID in the props map
         propsMap[newProps[i].getX()][newProps[i].getY()] = i;
@@ -290,6 +295,27 @@ public class Game extends GFGame
     }
 
     return newProps;
+
+  }
+
+
+  public static Prop customProp(int i, String[] lineParser) {
+    Prop custom;
+    if (lineParser[0].trim().equals("WALL_GLYPH")) {
+      custom = new Prop(
+        i,
+        Game.tileDict.get("GLYPH_ENGRAVED"),
+        Integer.parseInt(lineParser[1].trim()),
+        Integer.parseInt(lineParser[2].trim())
+        );
+      custom.setMetadata("{examine:What a strange symbol...}");
+
+    } else {
+      System.out.println("No prop with name "+lineParser[0].trim()+" found.");
+      custom = null;
+    }
+
+    return custom;
 
   }
 

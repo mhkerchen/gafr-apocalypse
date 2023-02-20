@@ -1,4 +1,16 @@
-import java.util.HashMap;
+
+import GaFr.GFGame;
+import GaFr.GFStamp;
+import GaFr.GFFont;
+import GaFr.Gfx;
+import GaFr.GFU;
+import GaFr.GFTexture;
+import GaFr.GFKey;
+
+import java.util.*;
+import java.io.*;
+import java.lang.Integer;
+import java.lang.Math;
 
 public class Prop { 
 
@@ -9,12 +21,37 @@ public class Prop {
   HashMap<String, String> metadata;
   boolean hasMetadata;
   boolean exists;
+
+  static String[][] predeterminedProps = new String[50][3];
+
   
-  // A prop has 4 arguments: the id, the icon, and the location in x and y coordinates.
+  static HashMap<String, Integer> tileDict;
+  
+  // A prop has 3 arguments: the icon, and the location in x and y coordinates.
   // Metadata, if any, is put in separately with the setMetadata argument.
-   
-    public Prop(int inid, int inicon, int inx, int iny) {
-        id = inid;
+    public static void initProp(){
+      //predeterminedProps[0][0] ="WALL_GLYPH";
+      //predeterminedProps[0][1] ="GLYPH_ENGRAVED";
+      //predeterminedProps[0][2] ="{examine:What a strange symbol.}";
+      
+      System.out.println(tileDict.get("NOTHING".trim()));
+      System.out.println(Integer.parseInt("2".trim()));
+      System.out.println(Integer.parseInt("2".trim()));
+      Prop prop = new Prop(
+        tileDict.get("NOTHING".trim()),
+        Integer.parseInt("2".trim()),
+        Integer.parseInt("2".trim())
+        );
+    }
+
+    public static void getTileDict(String key, int value) {
+      tileDict.put(key, value);
+
+    }
+
+
+    public Prop(int inicon, int inx, int iny) {
+        id = -1;
         icon = inicon;
         x = inx;
         y = iny;
@@ -158,4 +195,99 @@ public class Prop {
         return false;
         
     }
+
+
+  // Given a text file string formatted properly (see props_example.txt), will parse it into the Props list.
+  // Props are any tile which can be interacted with.
+  static Prop[] readProps(String propsString) {
+    String[] propsArray = propsString.split("\n");
+    String[] lineParser;
+    Prop[] newProps = new Prop[propsArray.length];
+    boolean isInt = false;
+
+
+    for (int i = 0; i < propsArray.length; i++) {
+      lineParser = propsArray[i].split(",", 4);
+      System.out.println( propsArray[i]);
+
+      // if there are enough arguments, create a new prop
+        try {
+          isInt = ( Integer.parseInt(lineParser[0].trim()) > 0 );
+        } catch (Exception e) {
+          isInt = false;
+        }
+
+          if (isInt) {
+            newProps[i] = parsePropNumber(lineParser);
+          } else if (tileDict.containsKey(lineParser[0].trim())) {
+            newProps[i] = parsePropName(lineParser);
+          } else  {
+            newProps[i] = parsePropPredefined(lineParser);
+          // } else {
+          //   System.out.println("Failure loading prop #"+i);
+          //   break;
+        
+          }
+
+        // stores the prop's ID in the props map
+        Game.propsMap[newProps[i].getX()][newProps[i].getY()] = i;
+    }
+  return newProps;
+  }
+
+  static Prop parsePropNumber(String[] lineParser) {
+    
+    Prop prop;
+          prop = new Prop(
+            Integer.parseInt(lineParser[0].trim()),
+            Integer.parseInt(lineParser[1].trim()),
+            Integer.parseInt(lineParser[2].trim())
+            );
+          prop.setMetadata(lineParser[3].trim());
+          System.out.println("Failure -- prop parse type 1");
+          prop = new Prop(1,-1,-1);
+      
+    return prop;
+  }
+
+  static Prop parsePropName(String[] lineParser) {
+    Prop prop;
+        
+    System.out.println(Game.tileDict.get(lineParser[0].trim()));
+    System.out.println(Integer.parseInt(lineParser[1].trim()));
+    System.out.println(Integer.parseInt(lineParser[2].trim()));
+    prop = new Prop(
+      tileDict.get(lineParser[0].trim()),
+      Integer.parseInt(lineParser[1].trim()),
+      Integer.parseInt(lineParser[2].trim())
+      );
+    prop.setMetadata(lineParser[3].trim());
+    return prop;
+  }
+
+  static Prop parsePropPredefined(String[] lineParser) {
+    Prop prop;
+          String[] predefined = new String[3];
+          String[] prePropsStr = new String[2];
+          int i = 0;
+          while (predeterminedProps[i][0] != lineParser[0].trim()) {
+            i++;
+          }
+          predefined = predeterminedProps[i];
+          prop = new Prop(
+            tileDict.get(predefined[1]),
+            Integer.parseInt(lineParser[1].trim()),
+            Integer.parseInt(lineParser[2].trim())
+            );
+            
+          prePropsStr[0] = predefined[2].substring(1, predefined[2].length() - 1);
+          prePropsStr[1] = lineParser[3].trim().substring(1, lineParser[3].trim().length() - 1);
+          prop.setMetadata("{"+prePropsStr[0]+","+prePropsStr[1]+"}");
+
+      
+    return prop;
+  }
+
+  
 }
+
