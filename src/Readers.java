@@ -36,30 +36,23 @@ public class Readers{
 
 	/* Splits the file by newlines, and returns the result.
 	   Takes a string, as spit out by the GaFr to text function.
-	   Does NOT trim lines. 
+	   Trims lines and removes comments and blank spaces!
 	*/
 	public static String[] splitFileNewline(String text) {
-		return text.split("\n");
-	}
-
-	/*
-
-		public static String[] splitFileNewline(String text) {
 		String[] textSplit = text.split("\n");
 		ArrayList<String> manipulate = new ArrayList<String>();
+
 		for (int i = 0; i < textSplit.length; i++) {
 			if (lineValid(textSplit[i])) {
 				manipulate.add(textSplit[i].trim());
 			}
 		}
-		
-		textSplit = new String[manipulate.size()];
 
+		textSplit = new String[manipulate.size()];
 		return manipulate.toArray(textSplit);
 	}
 
-	*/
-
+	
 
 	// Returns True if the line is not a comment or whitespace.
 	public static boolean lineValid(String line) {
@@ -69,65 +62,73 @@ public class Readers{
 			return false;
 		}
 		return true;
-
 	}
 	
-	/* Splits the file into a comma separated String[].
+	/*  Splits the line into a String[], comma separated.
 		Does not care about whitespace, but trims each argument. 
-		If there is metadata at the end of the string, it will be removed.
-		(Only one {} of metadata can be processed!)
-		Empty strings will be removed.
+		If there is metadata at the end of the string,
+		it will be returned as a single entry with {}.
+		**Will add empty entries, for example "w,x,,z".
 	*/
 	public static String[] splitLineStr(String text) {
-		ArrayList<String> argmts = new ArrayList<String>();
 		String meta = null;
-		if (text.indexOf("{") != -1) {
-			meta = extractMetadata(text); //.trim()
-			System.out.println("Metadata: "+meta);
-			text = subtractMetadata(text);
-			System.out.println("Remaining text: "+text);
+
+		if (text.indexOf("{") != -1) { // if metadata exists, extract it
+			
+			meta = extractMetadata(text).trim();
+			text = subtractMetadata(text); // save to put on the end
 		}
+
+		ArrayList<String> argmts = new ArrayList<String>();
 		String[] arr = text.split(",");
-		for (int i = 0; i < arr.length; i++) {
-			if (!arr[i].trim().equals("")) {
-				argmts.add(arr[i].trim());
-			}
+
+		for (int i = 0; i < arr.length; i++) { // trim and append nonempty entries
+			argmts.add(arr[i].trim());
 		}
-		if (meta != null) {
+
+		if (meta != null) { // add meta back in
 			argmts.add(meta);
 		}
+
+		// parse ArrayList to String array
 		arr = new String[argmts.size()];
-
 		return argmts.toArray(arr);
-
 	}
 
+	/*  Parses an array of Strings to integers, and returns that array.
+		Optionally takes a starting position.
+	*/
 	public static int[] strToInt(String[] arr, int starti) {
+		
 		int[] arrint = new int[arr.length];
 		for (int i = starti; i < arrint.length; i++) {
 			try {
 				arrint[i] = Integer.parseInt(arr[i]);
 			} catch (Exception e) {
-				System.out.println("Cannot parse "+arr[i]+" to string");
+				System.out.println("Cannot parse \""+arr[i]+"\" to string");
 			}
 		}
 		return arrint;
 
 	}
 
+	public static int[] strToInt(String[] arr) {
+		return strToInt(arr, 0);
+	}
+
+	/* Returns the metadata, including brackets.*/
 	public static String extractMetadata(String text) {
 		int start = text.indexOf("{");
 		int end = text.indexOf("}")+1;
 		return text.substring(start, end);
 	}
 
+	/* Removes the metadata, including brackets.*/
 	public static String subtractMetadata(String text) {
 		int start = text.indexOf("{");
 		int end = text.indexOf("}")+1;
 		String meta = text.substring(start, end);
 		return text.replace(meta, "");
 	}
-
-
 
 }

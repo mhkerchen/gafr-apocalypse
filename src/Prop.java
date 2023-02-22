@@ -7,8 +7,10 @@ public class Prop {
   int icon;
   int x;
   int y;
+
   HashMap<String, String> metadata;
   boolean hasMetadata;
+  
   boolean exists;
   boolean isPassable;
 

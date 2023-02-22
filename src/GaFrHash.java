@@ -1,7 +1,6 @@
-// GaFr doesn't play nice with HashMaps?
-// Fine, I'll do it myself.
-/*
+/* Emulates a HashMap, since GaFr doesn't play nice.*/
 
+/*
 Cons of GaFr Hash:
 	* Haven't tested it, but it's definitely slower than a HashMap
 	* O(n) retrieval time
@@ -11,12 +10,9 @@ Cons of GaFr Hash:
 Benefits of GaFr Hash:
 	* It works
 	* Same syntax as a hashmap
-
-
 */
 
 import java.util.*;
-
 
 public class GaFrHash<K,V> {
 
@@ -36,6 +32,7 @@ public class GaFrHash<K,V> {
 
 	}
 
+	// Gets the value stored by K key. Returns null if nothing is found.
 	public V get (K key) {
 		if (this.containsKey(key)) {
 			return values.get(keys.indexOf(key));
@@ -46,6 +43,7 @@ public class GaFrHash<K,V> {
 		
 	}
 
+	// Checks whether the "hashmap" contains said key. 
 	public boolean containsKey(K key) {
 		return keys.contains(key);
 	}
