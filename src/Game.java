@@ -7,6 +7,7 @@ import GaFr.Gfx;
 import GaFr.GFU;
 import GaFr.GFTexture;
 import GaFr.GFKey;
+import GaFr.GFSound;
 
 import java.util.*;
 import java.io.*;
@@ -53,12 +54,6 @@ public class Game extends GFGame
     static ArrayList<Prop> editModeGhostProps = new ArrayList<Prop>();
     static int[] editModeTiles;
 
-    // static variables
-    public static int charX = 1;
-    public static int charY = 1;
-    public static int charImg = 0;
-    public static int charDir = 0;
-
     public static int totalMaps = 10; // used for fog of war
     public static int edgeBuffer = 16;
 
@@ -80,10 +75,33 @@ public class Game extends GFGame
 
     static GFStamp[][] tileImages = new GFTexture("assets/images/tileset.png").splitIntoTilesBySize2D(32,32);
     static GFStamp[] textures;// = new GFStamp[TEXTURES_QTY];
-
-    static GFStamp[] playerImgs;// = new GFStamp[16];
-
     static GaFrHash<String, Integer> tileDict = new GaFrHash<String, Integer>();
+
+    static Animation lightBlink;
+
+
+    // soundt
+
+    public static GFSound SOUND_STEP = new GFSound("assets/sounds/step.mp3");
+    public static GFSound SOUND_DOOR_OPEN = new GFSound("assets/sounds/doornoise.mp3");
+    public static GFSound SOUND_LEVER_PULL = new GFSound("assets/sounds/lever.mp3");
+    public static GFSound SOUND_DIALOGUE_START = new GFSound("assets/sounds/dialogue_go.mp3");
+    public static GFSound SOUND_BGM = new GFSound("assets/sounds/letting_go_coag.mp3");
+    public static int bgmDuration = 306;
+/*
+  static void initSounds() {
+    // all sounds are free from pixabay except the bgm
+    sounds.put("start_dialogue", new GFSound("assets/sounds/dialogue_go.mp3"));
+    sounds.put("door_open", new GFSound("assets/sounds/doornoise.mp3"));
+    sounds.put("lever_pull", new GFSound("assets/sounds/lever.mp3"));
+    sounds.put("footstep", new GFSound("assets/sounds/step.mp3"));
+    // bgm from CoAg on youtube
+    sounds.put("bgm", new GFSound("assets/sounds/letting_go_coag.mp3"));
+  }
+
+  static void playSound(String name) {
+    sounds.get(name).play();
+  }*/
 
   // Initialization
   {
@@ -91,8 +109,9 @@ public class Game extends GFGame
       s.centerPin();
     }
     
-    
+    Player.p = new Player();
     Fog.initFog();
+    SOUND_BGM.play();
 
     try {
       textures = indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
@@ -101,7 +120,7 @@ public class Game extends GFGame
       errorScreen();
     }
     try {
-      playerImgs = indexTextures("assets/image_indexes/character", tileImages, 16);
+      Player.p.playerImgs = indexTextures("assets/image_indexes/character", tileImages, 16);
     } catch (Exception e ) {
       System.out.println("Failure to load player textures :(");
       errorScreen();
@@ -126,8 +145,11 @@ public class Game extends GFGame
   //alienDialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
   //dialogueBox.addMultipleLines("You look at the engraving. You can't figure out what it says.");
 
+  String[] lightAnim = {"LIGHT_OFF", "LIGHT_GREEN", "LIGHT_OFF", "LIGHT_BLUE", "LIGHT_OFF", "LIGHT_RED"};
+  lightBlink = new Animation(lightAnim, 60);
 
   }
+
 
   static void initFonts() {
     // initialize the alien text
@@ -252,9 +274,9 @@ public class Game extends GFGame
         propIndex++;
         currentProp = Prop.getProp(propIndex);
       }
-      Game.setCharX(currentProp.getX());
-      Game.setCharY(currentProp.getY());
-      Fog.clearFog(charX, charY); // reveal the immediate area, for ~vibes~
+      Player.p.setCharX(currentProp.getX());
+      Player.p.setCharY(currentProp.getY());
+      Fog.clearFog(Player.p.x, Player.p.y); // reveal the immediate area, for ~vibes~
 
   }
 
@@ -262,9 +284,9 @@ public class Game extends GFGame
 
     loadLevelInternal(filename);
 
-    Game.setCharX(spawnX);
-    Game.setCharY(spawnY);
-    Fog.clearFog(charX, charY);
+    Player.p.setCharX(spawnX);
+    Player.p.setCharY(spawnY);
+    Fog.clearFog(Player.p.x, Player.p.y);
 
   }
 
@@ -283,80 +305,6 @@ public class Game extends GFGame
       Prop.props = Prop.readProps(GFU.loadTextFile(filename+"_props.txt"));
   }
 
-  public static void setCharX(int val) {
-    charX = val;
-  }
-
-  public static void setCharY(int val) {
-    charY = val;
-  }
-
-
-  // Check if the player can move into a free space.
-  static boolean canMove(int dx, int dy) { 
-    if (((charX+dx) >= GRID_WIDTH) || ((charY+dy) >= GRID_HEIGHT) || ((charX+dx) < 0) || ((charY+dy) < 0)) {
-      return false;
-    } else if (isPassableXY(charX+dx, charY+dy)) {//(canPass(grid[charX+dx][charY+dy])) {
-      return true;
-      // TODO: check for an impassible prop
-    }
-    return false;
-  }
-
-  // Attempt to move into a free space.
-  static boolean tryMove(int dx, int dy) {
-    if (canMove(dx, dy)) {
-      movePlayer(dx, dy);
-      return true;
-    }
-    return false;
-  }
-
-  // Force moves the player.
-  static void movePlayer(int dx, int dy) {
-      charX += dx;
-      charY += dy;
-      Fog.clearFog(charX, charY);
-
-  }
-
-  // Attempt to perform an (automatic) action.
-  static boolean tryAction(int x, int y) {
-    if (propsMap[x][y] == 0) {
-      return false;
-    }
-    return Prop.props[propsMap[x][y]].tryOverlapAction();
-  }
-
-  /*
-  Attempt to perform a manual action
-  When the player hits the touch action button (default Space and/or Enter) check for and execute any
-  touch actions. 
-  It only checks the prop in the direction where you're facing. 
-  */
-  public static void touchAction() {
-    // on tile:
-    if ((propsMap[charX][charY] != 0)) {
-      Prop.props[propsMap[charX][charY]].tryTouchAction();
-    } 
-    // above:
-    else if ( (charDir==0) && (propsMap[charX][charY-1] != 0)) {
-      Prop.props[propsMap[charX][charY-1]].tryTouchAction();
-    } 
-    // below:
-    else if ( (charDir==2) && (propsMap[charX][charY+1] != 0)) {
-      Prop.props[propsMap[charX][charY+1]].tryTouchAction();
-    } 
-    // right:
-    else if ( (charDir==1) && (propsMap[charX+1][charY] != 0)) {
-      Prop.props[propsMap[charX+1][charY]].tryTouchAction();
-    } 
-    // left:
-    else if ( (charDir==3) && (propsMap[charX-1][charY] != 0)) {
-      Prop.props[propsMap[charX-1][charY]].tryTouchAction();
-    } 
-  }
-
   // Determines whether a tile at x,y is passable.
   // Returns false if it is not passable, or if it is invalid.
   public static boolean isPassableXY(int x, int y) {
@@ -372,24 +320,6 @@ public class Game extends GFGame
     return false;
   }
 
-
-  public static void faceChar(String dir) {
-    if (dir.equals("up")) {
-      charDir = 0;
-      charImg = 4;
-    } else if (dir.equals("right")) {
-      charDir = 1;
-      charImg = 8;
-    } else if (dir.equals("down")) {
-      charDir = 2;
-      charImg = 0;
-    } else {
-      charDir = 3;
-      charImg = 12;
-    }
-  }
-
-  
 
 
 
@@ -418,51 +348,32 @@ public class Game extends GFGame
   switch(code) {
       case GFKey.A:
       case GFKey.ArrowLeft: {
-        if (!isDialogue) {
-          faceChar("left");
-          if (tryMove(-1,0)) {
-            tryAction(charX, charY);
-          }
-        }
+        Player.p.goDir("left");
         break;
       }
 
       case GFKey.D:
       case GFKey.ArrowRight: {
-        if (!isDialogue) {
-          faceChar("right");
-          if (tryMove(1,0)) {
-            tryAction(charX, charY);
-          }
-        }
+        Player.p.goDir("right");
+        
         break;
       }  
       
       case GFKey.W:
       case GFKey.ArrowUp: {
-        if (!isDialogue) {
-          faceChar("up");
-          if (tryMove(0,-1)) {
-            tryAction(charX, charY);
-          }
-        }
+        Player.p.goDir("up");
         break;
       }
 
       case GFKey.S:
       case GFKey.ArrowDown: {
-        if (!isDialogue) {
-          faceChar("down");
-          if (tryMove(0,1)) {
-            tryAction(charX, charY);
-          }
-        }
+        Player.p.goDir("down");
         break;
       }  
 
       case GFKey.P: {
         // P is for Print! This prints off some relevant information about your current position.
-        System.out.println("current position: "+charX+","+charY);
+        System.out.println("current position: "+Player.p.x+","+Player.p.y);
         break;
       }  
 
@@ -514,17 +425,17 @@ public class Game extends GFGame
       case GFKey.Enter: {
         if (editMode) {
           if (editModePlaceType.equals("tile") ) {
-            grid[charX][charY] = editModePlaceIcon;
+            grid[Player.p.x][Player.p.y] = editModePlaceIcon;
           } else {
-            editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ charX +","+ charY +",{}";
-            System.out.println(editModePlaceIcon + ","+ charX +","+ charY +",{}");
-            propsMap[charX][charY] = editModePlaceIcon;
-            editModeGhostProps.add(new Prop(1,editModePlaceIcon,charX,charY));
+            editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.p.x +","+ Player.p.y +",{}";
+            System.out.println(editModePlaceIcon + ","+ Player.p.x +","+ Player.p.y +",{}");
+            propsMap[Player.p.x][Player.p.y] = editModePlaceIcon;
+            editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.p.x,Player.p.y));
           }
         } else {
           // call a touch action
           if (!isDialogue) {
-            touchAction();
+            Player.p.touchAction();
           } 
           
         }
@@ -538,22 +449,12 @@ public class Game extends GFGame
       }
 
       case GFKey.BracketRight: {
-        editModePlaceIconIndex++;
-        if (editModePlaceIconIndex >= editModeTiles.length) {
-          editModePlaceIconIndex = 0;
-        }
-        System.out.println(editModePlaceIconIndex);
-        editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
+        editModeChangeIcon(1);
         break;
       }
 
       case GFKey.BracketLeft: {
-        editModePlaceIconIndex--;
-        if (editModePlaceIconIndex < 0) {
-          editModePlaceIconIndex = editModeTiles.length-1;
-        }
-        System.out.println(editModePlaceIconIndex);
-        editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
+        editModeChangeIcon(-1);
         break;
       }
 
@@ -576,12 +477,12 @@ public class Game extends GFGame
 
   public static void editModePlaceTile() {
     if (editModePlaceType.equals("tile") ) {
-      grid[charX][charY] = editModePlaceIcon;
+      grid[Player.p.x][Player.p.y] = editModePlaceIcon;
     } else {
-      editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ charX +","+ charY +",{}";
-      System.out.println(editModePlaceIcon + ","+ charX +","+ charY +",{}");
-      propsMap[charX][charY] = editModePlaceIcon;
-      editModeGhostProps.add(new Prop(1,editModePlaceIcon,charX,charY));
+      editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.p.x +","+ Player.p.y +",{}";
+      System.out.println(editModePlaceIcon + ","+ Player.p.x +","+ Player.p.y +",{}");
+      propsMap[Player.p.x][Player.p.y] = editModePlaceIcon;
+      editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.p.x,Player.p.y));
     }
   }
 
@@ -596,6 +497,14 @@ public class Game extends GFGame
         }
         editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
   }
+
+
+
+  /// SOUNDS
+
+
+
+
 
   // DRAW FUNCTIONS
 
@@ -632,19 +541,24 @@ public class Game extends GFGame
     if (editMode) {
       player = textures[editModePlaceIcon];
     } else {
-      player = playerImgs[charImg];
+      player = Player.p.playerImgs[Player.p.img];
     }
     
-    player.moveTo(edgeBuffer+charX*TILE_SIZE, edgeBuffer+charY*TILE_SIZE);
+    player.moveTo(edgeBuffer+Player.p.x*TILE_SIZE, edgeBuffer+Player.p.y*TILE_SIZE);
     player.stamp();
 
     // in edit mode, there is an additional white outline for the cursor
     if (editMode) {
       player = textures[9];
-      player.moveTo(edgeBuffer+charX*TILE_SIZE, edgeBuffer+charY*TILE_SIZE);
+      player.moveTo(edgeBuffer+Player.p.x*TILE_SIZE, edgeBuffer+Player.p.y*TILE_SIZE);
       player.stamp();
     }
 
+  }
+
+  public static void drawTest() {
+    lightBlink.poll();
+    lightBlink.moveTo(0+edgeBuffer,0+edgeBuffer);
   }
 
   // Draws all preexisting props. 
@@ -661,6 +575,9 @@ public class Game extends GFGame
   @Override
   public void onDraw (int frameCount)
   {
+    if ( ((frameCount) % (bgmDuration*60)) == 0) {
+      SOUND_BGM.play();
+    }
     if (beRightBack) {
       cryBabyScreen.moveTo(0,0);
       cryBabyScreen.stamp();
@@ -672,6 +589,7 @@ public class Game extends GFGame
       drawProps();
       drawPlayer();
       drawText();
+      drawTest();
       if (frameCount%2 == 0) {
         dialogueBox.displayOneCharacter();
       }

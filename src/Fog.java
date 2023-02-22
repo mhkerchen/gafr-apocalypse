@@ -44,7 +44,7 @@ public class Fog {
 	}
 
 	public static void clearFog() {
-		clearFog(Game.charX, Game.charY);
+		clearFog(Player.p.x, Player.p.y);
 	}
 	
 	public static void clearFog(int charX, int charY) {

@@ -85,8 +85,8 @@ public class Prop {
       if (this.metadata.containsKey("teleport")) {
         int teleportDestX = Integer.parseInt(metadata.get("teleport").trim().split(",")[0]);
         int teleportDestY = Integer.parseInt(metadata.get("teleport").trim().split(",")[1]);
-        Game.setCharX(teleportDestX);
-        Game.setCharY(teleportDestY);
+        Player.p.setCharX(teleportDestX);
+        Player.p.setCharY(teleportDestY);
         Fog.clearFog();
         return true;
       } 
@@ -155,11 +155,13 @@ public class Prop {
         signals.remove(metastr[0]);
         signals.add("NOT_"+metastr[0]);
         this.icon = Game.tileDict.get(metastr[1]);
+        Game.SOUND_LEVER_PULL.play();
       } else {
         // it's off, turn it on
         signals.add(metastr[0]);
         signals.remove("NOT_"+metastr[0]);
         this.icon = Game.tileDict.get(metastr[2]);
+        Game.SOUND_LEVER_PULL.play();
 
       }
       allSignalsUpdate();

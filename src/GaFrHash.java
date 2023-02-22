@@ -35,11 +35,7 @@ public class GaFrHash<K,V> {
 	}
 
 	public V get (K key) {
-		int i = 0;
-		while ((!keys.get(i).equals(key)) && (i < keys.size()-2)) {
-			i++;
-		}
-		return values.get(i);
+		return values.get(keys.indexOf(key));
 	}
 
 	public boolean containsKey(K key) {
