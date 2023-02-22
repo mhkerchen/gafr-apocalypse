@@ -24,6 +24,7 @@ public class Fog {
 		Fog.mapIndexConnections.put("assets/maps/dungeon_map", 0);
 		Fog.mapIndexConnections.put("assets/maps/dungeon_map_2", 1);
 		Fog.mapIndexConnections.put("assets/maps/newmap", 2);
+		Fog.mapIndexConnections.put("assets/maps/dungeon_map_3", 3);
 	}
 
 	public static void loadFog(String filename) {

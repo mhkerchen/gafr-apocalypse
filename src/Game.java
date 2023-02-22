@@ -43,7 +43,7 @@ public class Game extends GFGame
     static final int GRID_HEIGHT = 15;
     static final int GRID_WIDTH = 24;
     static final int TILE_SIZE = 32;
-    static final int TEXTURES_QTY = 64;
+    static final int TEXTURES_QTY = 128;
 
     // Edit mode variables
     static boolean editMode = false;
@@ -65,7 +65,6 @@ public class Game extends GFGame
 
     // static variables and grids
     public static int grid[][] = new int[GRID_WIDTH][GRID_HEIGHT];
-    public static Prop[] props;
     public static int[][] propsMap; // used for checking collisions. Allows accessing ID by position.
     
     // for fog of war saving and loading
@@ -80,7 +79,7 @@ public class Game extends GFGame
 
     // Load graphics
 
-    static GFStamp[][] tileImages = new GFTexture("assets/images/tileset_large.png").splitIntoTilesBySize2D(32,32);
+    static GFStamp[][] tileImages = new GFTexture("assets/images/tileset.png").splitIntoTilesBySize2D(32,32);
     static GFStamp[] textures;// = new GFStamp[TEXTURES_QTY];
 
     static GFStamp[] playerImgs;// = new GFStamp[16];
@@ -92,6 +91,7 @@ public class Game extends GFGame
     for (GFStamp s: new GFU.Iter2D<GFStamp>(tileImages)) {
       s.centerPin();
     }
+    
     
     Fog.initFog();
 
@@ -110,7 +110,7 @@ public class Game extends GFGame
 
     editModeTiles = getValidTiles(textures);
 
-    
+    Prop.readImpassableProps();
 
   // Loads the level.
   try {
@@ -123,6 +123,8 @@ public class Game extends GFGame
   initFonts();
     
   dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
+    
+  //alienDialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
   //dialogueBox.addMultipleLines("You look at the engraving. You can't figure out what it says.");
 
 
@@ -130,19 +132,17 @@ public class Game extends GFGame
 
   static void initFonts() {
     // initialize the alien text
-      GFStamp[] glyphs = (new GFTexture("assets/fonts/alientext_2x.png", 0xff000000, 0xffffffff)).splitIntoTilesBySize(20,24);
+      GFStamp[] glyphs;/* = (new GFTexture("assets/fonts/alientext_2x.png", 0xff000000, 0xffffffff)).splitIntoTilesBySize(20,24);
       alienFont = new GFFont(glyphs,
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ.!" );
-      alienFont.collapseCase();
-      glyphs = new GFTexture("assets/fonts/bittext_2x.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
+      alienFont.collapseCase();*/
+      glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
       englishFont = new GFFont(glyphs,
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?!.,-:;()1234567890$#*'%^ " );
+        "abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
   }
 
   static void drawText(){
 
-    //alienFont.draw(128+16,20, "WARNING!DO\nNOTGOBEYONDTHISPOINTIFYOUVALUEYOURLIFE");
-    //englishFont.draw(200,50, "Hello World! This is a TEST FONT and a TEST!");
     dialogueBox.drawBox();
   }
 
@@ -163,42 +163,32 @@ public class Game extends GFGame
     return returnArray;
   }
 
+  
   static GFStamp[] indexTextures(String tile_filename, GFStamp[][] imageMatrix, int destArraySize) throws FileNotFoundException {
 
     String tilesText = GFU.loadTextFile(tile_filename+".txt");
-    String[] tilesArray = tilesText.split("\n");
-    String currentLine;
+    String[] tilesArray = Readers.splitFileNewline(tilesText);
     String[] currentLineSplit;
-
+	  int[] arr;
+    String currentLine;
     GFStamp[] texturesArray = new GFStamp[destArraySize];
+
     for (int i =0; i < tilesArray.length; i++) {
       currentLine = tilesArray[i].trim();
-      // skip blank lines or lines starting with a // (comments)
-      
-      // todo: the semicolons make me angry
-      if (currentLine.isEmpty()) {
-        ;
-      } else if  (currentLine.charAt(0)=='/') {
-        // reason for this: java will FREAK if i try to get charAt(0) of an empty string
-        ;
-      } else {
-        currentLineSplit = currentLine.split(",");
-        currentLineSplit[0] = currentLineSplit[0].trim();
-        currentLineSplit[1] = currentLineSplit[1].trim();
-        currentLineSplit[2] = currentLineSplit[2].trim();
-        currentLineSplit[3] = currentLineSplit[3].trim();
 
-        // roughly equivalent to textures[0] = tileImages[1][2];
-        texturesArray[Integer.parseInt(currentLineSplit[1])] = imageMatrix[Integer.parseInt(currentLineSplit[2])][Integer.parseInt(currentLineSplit[3])];
+      if (Readers.lineValid(currentLine)) {
+        currentLineSplit = Readers.splitLineStr(currentLine);
+		    arr = Readers.strToInt(currentLineSplit,1);
+        
+        texturesArray[arr[1]] = imageMatrix[arr[2]][arr[3]];
 
-        // creates a name-to-index dictionary. Useful!
-        tileDict.put(currentLineSplit[0], Integer.parseInt(currentLineSplit[1]));
+        tileDict.put(currentLineSplit[0], arr[1]);
       }
     }
 
     return texturesArray;
-
   }
+	
 
   // Given a text file string containing the map layout, constructs the tiles. (Does not include interactibles.)
   static int[][] readInGameMap(String mapString) {
@@ -257,17 +247,18 @@ public class Game extends GFGame
       loadLevelInternal(filename);
 
       // find the Spawn entry (usually but not always the first object) and spawn there
-      Prop currentProp = Game.getProp(0);
+      Prop currentProp = Prop.getProp(0);
       int propIndex = 0;
       while (!currentProp.metadata.containsKey("spawn")) {
         propIndex++;
-        currentProp = Game.getProp(propIndex);
+        currentProp = Prop.getProp(propIndex);
       }
       Game.setCharX(currentProp.getX());
       Game.setCharY(currentProp.getY());
       Fog.clearFog(charX, charY); // reveal the immediate area, for ~vibes~
 
   }
+
   public static void loadLevel(String filename, int spawnX, int spawnY) throws FileNotFoundException {
 
     loadLevelInternal(filename);
@@ -279,28 +270,19 @@ public class Game extends GFGame
   }
 
   public static void loadLevelInternal(String filename) throws FileNotFoundException {
-      // clear maps before refilling them
       
-      // save the current fog of war in the history
-
       Fog.loadFog(filename);
     
       propsMap = new int[GRID_WIDTH][GRID_HEIGHT];
       
-      // update the current filename
       currentMapFilename = filename;
 
       // load in maps
       System.out.println("Load ingame map");
       grid = readInGameMap(GFU.loadTextFile(filename+".txt"));
       System.out.println("Load prop map");
-      props = Prop.readProps(GFU.loadTextFile(filename+"_props.txt"));
+      Prop.props = Prop.readProps(GFU.loadTextFile(filename+"_props.txt"));
   }
-
-  public static void errorScreen() {
-    beRightBack = true;
-  }
-
 
   public static void setCharX(int val) {
     charX = val;
@@ -310,16 +292,12 @@ public class Game extends GFGame
     charY = val;
   }
 
-  public static Prop getProp(int index) {
-    return props[index];
-  }
-
 
   // Check if the player can move into a free space.
   boolean canMove(int dx, int dy) { 
     if (((charX+dx) >= GRID_WIDTH) || ((charY+dy) >= GRID_HEIGHT) || ((charX+dx) < 0) || ((charY+dy) < 0)) {
       return false;
-    } else if (canPass(grid[charX+dx][charY+dy])) {
+    } else if (isPassableXY(charX+dx, charY+dy)) {//(canPass(grid[charX+dx][charY+dy])) {
       return true;
       // TODO: check for an impassible prop
     }
@@ -348,7 +326,7 @@ public class Game extends GFGame
     if (propsMap[x][y] == 0) {
       return false;
     }
-    return props[propsMap[x][y]].tryOverlapAction();
+    return Prop.props[propsMap[x][y]].tryOverlapAction();
   }
 
   /*
@@ -360,23 +338,23 @@ public class Game extends GFGame
   public void touchAction() {
     // on tile:
     if ((propsMap[charX][charY] != 0)) {
-      props[propsMap[charX][charY]].tryTouchAction();
+      Prop.props[propsMap[charX][charY]].tryTouchAction();
     } 
     // above:
     else if ( (charDir==0) && (propsMap[charX][charY-1] != 0)) {
-      props[propsMap[charX][charY-1]].tryTouchAction();
+      Prop.props[propsMap[charX][charY-1]].tryTouchAction();
     } 
     // below:
     else if ( (charDir==2) && (propsMap[charX][charY+1] != 0)) {
-      props[propsMap[charX][charY+1]].tryTouchAction();
+      Prop.props[propsMap[charX][charY+1]].tryTouchAction();
     } 
     // right:
     else if ( (charDir==1) && (propsMap[charX+1][charY] != 0)) {
-      props[propsMap[charX+1][charY]].tryTouchAction();
+      Prop.props[propsMap[charX+1][charY]].tryTouchAction();
     } 
     // left:
     else if ( (charDir==3) && (propsMap[charX-1][charY] != 0)) {
-      props[propsMap[charX-1][charY]].tryTouchAction();
+      Prop.props[propsMap[charX-1][charY]].tryTouchAction();
     } 
   }
 
@@ -384,7 +362,13 @@ public class Game extends GFGame
   // Returns false if it is not passable, or if it is invalid.
   public static boolean isPassableXY(int x, int y) {
     if (isValidTile(x,y)) {
-      return canPass(grid[x][y]);
+      if (canPass(grid[x][y])) {
+        if (propsMap[x][y] == 0 ) {
+          return true;
+        } else {
+          return Prop.props[propsMap[x][y]].canPass();
+        }
+      }
     }
     return false;
   }
@@ -420,8 +404,8 @@ public class Game extends GFGame
 
   public static String tilesToString() {
     String tilesString = "";
-    for (int y=0; y < GRID_HEIGHT; y++) {
-      for (int x=0; x < GRID_WIDTH; x++) {
+    for (int y=0; y < GRID_HEIGHT-1; y++) {
+      for (int x=0; x < GRID_WIDTH-1; x++) {
         tilesString = tilesString + grid[x][y] + ",";
       }
       tilesString = tilesString + "\n";
@@ -531,12 +515,10 @@ public class Game extends GFGame
 
       case GFKey.Space:
       case GFKey.Enter: {
-        System.out.println(isDialogue);
         if (editMode) {
           if (editModePlaceType.equals("tile") ) {
             grid[charX][charY] = editModePlaceIcon;
           } else {
-            /// WHY NOT WORK????
             editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ charX +","+ charY +",{}";
             System.out.println(editModePlaceIcon + ","+ charX +","+ charY +",{}");
             propsMap[charX][charY] = editModePlaceIcon;
@@ -612,22 +594,10 @@ public class Game extends GFGame
     }
   }
 
-  // Draws all preexisting props. 
-  void drawProps() {
-    for (int i = 0; i < props.length; i++) {
-      if ( (props[i].exists) && ( (editMode) || (Fog.fogOfWar[props[i].getX()][props[i].getY()] == 1)) ) {
-        GFStamp s = textures[props[i].getIcon()];
-        s.moveTo(edgeBuffer+props[i].getX()*TILE_SIZE, edgeBuffer+props[i].getY()*TILE_SIZE);
-        s.stamp();
-      }
-    }
-  }
-
   // Draws all ghost props. 
   void drawGhostProps() {
     if (editMode) {
       for (int i = 0; i < editModeGhostProps.toArray().length; i++) {
-        
           GFStamp s = textures[editModeGhostProps.get(i).getIcon()];
           s.moveTo(edgeBuffer+editModeGhostProps.get(i).getX()*TILE_SIZE, edgeBuffer+editModeGhostProps.get(i).getY()*TILE_SIZE);
           s.stamp();
@@ -659,6 +629,16 @@ public class Game extends GFGame
 
   }
 
+  // Draws all preexisting props. 
+  public static void drawProps() {
+    for (int i = 0; i < Prop.props.length; i++) {
+      if ( (Prop.props[i].exists) && ( (editMode) || (Fog.fogOfWar[Prop.props[i].getX()][Prop.props[i].getY()] == 1)) ) {
+        GFStamp s = textures[Prop.props[i].getIcon()];
+        s.moveTo(edgeBuffer+Prop.props[i].getX()*TILE_SIZE, edgeBuffer+Prop.props[i].getY()*TILE_SIZE);
+        s.stamp();
+      }
+    }
+  }
 
   @Override
   public void onDraw (int frameCount)
@@ -679,6 +659,11 @@ public class Game extends GFGame
       }
     }
 
+  }
+
+
+  public static void errorScreen() {
+    beRightBack = true;
   }
 
 }

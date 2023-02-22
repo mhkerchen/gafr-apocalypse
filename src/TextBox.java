@@ -173,7 +173,7 @@ public class TextBox {
 	// Note that nothing will show at first. 
 	public void addMultipleLines(String lines) {
 
-		String[] allLines = lines.split("#");
+		String[] allLines = lines.split("/");
 		for (int i = 0; i < allLines.length; i++) {
 			allText.add(allLines[i]);
 		}

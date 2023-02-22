@@ -1,2 +1,2 @@
-10,2,2,{spawn:true}
-3,2,0,{destination:dungeon_map}
+NOTHING,2,2,{spawn:true}
+DOOR,2,0,{destination:dungeon_map}

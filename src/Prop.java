@@ -1,4 +1,5 @@
-import java.util.HashMap;
+import java.util.*;
+import GaFr.GFU;
 
 public class Prop { 
 
@@ -9,7 +10,12 @@ public class Prop {
   HashMap<String, String> metadata;
   boolean hasMetadata;
   boolean exists;
-  
+  boolean isPassable;
+
+  public static ArrayList<Integer> impassableProps = new ArrayList<Integer>();
+  public static ArrayList<String> signals = new ArrayList<String>();
+  public static Prop[] props;
+
   // A prop has 4 arguments: the id, the icon, and the location in x and y coordinates.
   // Metadata, if any, is put in separately with the setMetadata argument.
    
@@ -37,6 +43,10 @@ public class Prop {
 
     public String getString() {
       return "x: "+this.x+" y: "+this.y+" icon: "+this.icon+" id: "+this.id;
+    }
+
+    public boolean canPass() {
+      return this.isPassable;
     }
 
     public void setMetadata(String metadata_raw) {
@@ -103,6 +113,9 @@ public class Prop {
       if (this.metadata.containsKey("inventory") ) {
         System.out.println(this.metadata.get("inventory"));
       }
+      if (this.metadata.containsKey("signal")) {
+        doSignal();
+      }
       return false;
     }
 
@@ -131,6 +144,56 @@ public class Prop {
 
     }
 
+    public void doSignal() {
+      // metadata format: signalcolor, offimage, onimage
+      String[] metastr = metadata.get("signal").split(",");
+      metastr[0] = metastr[0].trim();
+      metastr[1] = metastr[1].trim();
+      metastr[2] = metastr[2].trim();
+      if (signals.contains(metastr[0])) {
+        // it's on, turn it off
+        signals.remove(metastr[0]);
+        signals.add("NOT_"+metastr[0]);
+        this.icon = Game.tileDict.get(metastr[1]);
+      } else {
+        // it's off, turn it on
+        signals.add(metastr[0]);
+        signals.remove("NOT_"+metastr[0]);
+        this.icon = Game.tileDict.get(metastr[2]);
+
+      }
+      allSignalsUpdate();
+    }
+    
+    public static void allSignalsUpdate() {
+      // if it contains gate_control or another signal dependent meta,
+      // check that it's at the proper state
+      for (int pint = 0; pint < props.length; pint++) {
+        if (props[pint].metadata.containsKey("gate_control")) {
+          props[pint].updateGate();
+        }
+      }
+    }
+
+    public void updateGate() {
+      //signals.contains("found")
+      // {gate_control:GREEN,GATE_HOR,GATE_HOR_OPEN}
+      String[] metastr = this.metadata.get("gate_control").split(",");
+        // metastr = [SIG_COLOR, CLOSED_IMG, OPEN_IMG]
+      if (signals.contains(metastr[0].trim())) {
+        // signal is ON, switch to OPEN_IMG and set isPassable = true
+        // TODO: add support for integer version also
+        this.icon = Game.tileDict.get(metastr[2].trim());
+        this.isPassable = true;
+
+      } else {
+        // signal is OFF, switch to CLOSED_IMG and set isPassable = false
+        this.icon = Game.tileDict.get(metastr[1].trim());
+        this.isPassable = false;
+      }
+
+    }
+
 
     // Go to the destination pointed to by this prop
     public boolean doDestination() {
@@ -143,14 +206,17 @@ public class Prop {
           try {
             if (destinationMetadata.length == 1) {
               Game.loadLevel("assets/maps/"+destinationMetadata[0]);
+              allSignalsUpdate();
               return true;
             } else if (destinationMetadata.length == 3) {
               Game.loadLevel("assets/maps/"+destinationMetadata[0], Integer.parseInt(destinationMetadata[1]), Integer.parseInt(destinationMetadata[2]));
+              allSignalsUpdate();
               return true;
             }
           }
           catch (Exception e) {
             System.out.println("Failure to load new map.");
+            e.printStackTrace();
             Game.errorScreen();
           }
           return false;
@@ -203,6 +269,19 @@ public class Prop {
           }
         }
 
+        if (impassableProps.contains(newProps[i].getIcon())) {
+          newProps[i].isPassable = false;
+        } else {
+          newProps[i].isPassable = true;
+        }
+
+        if (newProps[i].metadata.containsKey("canpass")) {
+          newProps[i].isPassable = true;
+        } else if (newProps[i].metadata.containsKey("cannotpass")) {
+          newProps[i].isPassable = false;
+
+        }
+
 
         // parses and stores the metadata
 
@@ -226,7 +305,7 @@ public class Prop {
         Integer.parseInt(lineParser[1].trim()),
         Integer.parseInt(lineParser[2].trim())
         );
-      custom.setMetadata("{examine:What a strange symbol...}");
+      custom.setMetadata("{examine:what a strange symbol...}");
 
     } else {
       System.out.println("No prop with name "+lineParser[0].trim()+" found.");
@@ -235,5 +314,19 @@ public class Prop {
 
     return custom;
 
+  }
+
+  public static void readImpassableProps() {
+    String[] lines = GFU.loadTextFile("assets/image_indexes/impassible_props.txt").split("\n");
+    for (int i = 0; i < lines.length-1; i++) {
+      impassableProps.add(Game.tileDict.get(lines[i].trim()));
+    }
+  }
+
+  
+
+
+  public static Prop getProp(int index) {
+    return props[index];
   }
 }
