@@ -113,7 +113,7 @@ public class Game extends GFGame
     Fog.initFog();
     SOUND_BGM.play();
 
-    try {
+    try { // initializes textures and tileDict
       textures = indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
     } catch (Exception e ) {
       System.out.println("Failure to load tile textures :(");
@@ -126,10 +126,15 @@ public class Game extends GFGame
       errorScreen();
     }
 
+    try { // must run after tileDict is initialized
+      Animation.initializeAnimations();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    
     editModeTiles = getValidTiles(textures);
-
     Prop.readImpassableProps();
-
+    Prop.initializeProps();
   // Loads the level.
   try {
     loadLevel("assets/maps/dungeon_map");
@@ -141,13 +146,6 @@ public class Game extends GFGame
   initFonts();
     
   dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
-    
-  //alienDialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
-  //dialogueBox.addMultipleLines("You look at the engraving. You can't figure out what it says.");
-
-  String[] lightAnim = {"LIGHT_OFF", "LIGHT_GREEN", "LIGHT_OFF", "LIGHT_BLUE", "LIGHT_OFF", "LIGHT_RED"};
-  lightBlink = new Animation(lightAnim, 60);
-
   }
 
 
@@ -202,8 +200,8 @@ public class Game extends GFGame
 		    arr = Readers.strToInt(currentLineSplit,1);
         
         texturesArray[arr[1]] = imageMatrix[arr[2]][arr[3]];
-
-        tileDict.put(currentLineSplit[0], arr[1]);
+        System.out.println(currentLineSplit[0]);
+        tileDict.put(currentLineSplit[0].trim(), arr[1]);
       }
     }
 
@@ -556,18 +554,16 @@ public class Game extends GFGame
 
   }
 
-  public static void drawTest() {
-    lightBlink.poll();
-    lightBlink.moveTo(0+edgeBuffer,0+edgeBuffer);
-  }
 
   // Draws all preexisting props. 
   public static void drawProps() {
     for (int i = 0; i < Prop.props.length; i++) {
       if ( (Prop.props[i].exists) && ( (editMode) || (Fog.fogOfWar[Prop.props[i].getX()][Prop.props[i].getY()] == 1)) ) {
+
         GFStamp s = textures[Prop.props[i].getIcon()];
         s.moveTo(edgeBuffer+Prop.props[i].getX()*TILE_SIZE, edgeBuffer+Prop.props[i].getY()*TILE_SIZE);
         s.stamp();
+        
       }
     }
   }
@@ -575,6 +571,7 @@ public class Game extends GFGame
   @Override
   public void onDraw (int frameCount)
   {
+    //Animation.pollAnimations();
     if ( ((frameCount) % (bgmDuration*60)) == 0) {
       SOUND_BGM.play();
     }
@@ -586,10 +583,11 @@ public class Game extends GFGame
       if (editMode) {
         drawGhostProps();
       } 
+      Animation.pollAnimations();
+      //Prop.props[2].animation.poll();
       drawProps();
       drawPlayer();
       drawText();
-      drawTest();
       if (frameCount%2 == 0) {
         dialogueBox.displayOneCharacter();
       }

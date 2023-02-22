@@ -42,6 +42,24 @@ public class Readers{
 		return text.split("\n");
 	}
 
+	/*
+
+		public static String[] splitFileNewline(String text) {
+		String[] textSplit = text.split("\n");
+		ArrayList<String> manipulate = new ArrayList<String>();
+		for (int i = 0; i < textSplit.length; i++) {
+			if (lineValid(textSplit[i])) {
+				manipulate.add(textSplit[i].trim());
+			}
+		}
+		
+		textSplit = new String[manipulate.size()];
+
+		return manipulate.toArray(textSplit);
+	}
+
+	*/
+
 
 	// Returns True if the line is not a comment or whitespace.
 	public static boolean lineValid(String line) {
@@ -64,7 +82,7 @@ public class Readers{
 		ArrayList<String> argmts = new ArrayList<String>();
 		String meta = null;
 		if (text.indexOf("{") != -1) {
-			meta = extractMetadata(text);
+			meta = extractMetadata(text); //.trim()
 			System.out.println("Metadata: "+meta);
 			text = subtractMetadata(text);
 			System.out.println("Remaining text: "+text);

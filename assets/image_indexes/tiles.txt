@@ -69,3 +69,4 @@ GLYPH_ENGRAVED,      70, 1, 6
 GLYPH_GLOW,          71, 0, 7
 GLYPH_GLOWIER,       72, 1, 7
 
+ANIMATION, 			 100, 1, 0

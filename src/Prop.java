@@ -12,13 +12,31 @@ public class Prop {
   boolean exists;
   boolean isPassable;
 
+  Animation animation;
+  boolean isAnimated;
+
   public static ArrayList<Integer> impassableProps = new ArrayList<Integer>();
   public static ArrayList<String> signals = new ArrayList<String>();
   public static Prop[] props;
 
+  public static String[][] defaultProps; // n long, 3 wide
+
   // A prop has 4 arguments: the id, the icon, and the location in x and y coordinates.
   // Metadata, if any, is put in separately with the setMetadata argument.
    
+
+
+   /*
+
+   DM3 props
+
+   
+WALL_GLYPH,12,1,{none:none}
+WALL_GLYPH,10,4,{none:none}
+WALL_GLYPH,9,11,{none:none}
+WALL_GLYPH,17,14,{none:none}
+
+*/
     public Prop(int inid, int inicon, int inx, int iny) {
         id = inid;
         icon = inicon;
@@ -27,6 +45,20 @@ public class Prop {
         metadata = new HashMap<String, String>();
         hasMetadata = false;
         exists = true;
+    }
+
+    public static String[] getDefaultProp(String name) {
+      System.out.println(defaultProps.length);
+      for (int i = 0; i < defaultProps.length; i++) {
+        System.out.println(defaultProps[i][0]);
+        if (defaultProps[i][0].equals(name)) {
+        System.out.println("arg: "+defaultProps[i][1]);
+        System.out.println("arg: "+defaultProps[i][2]);
+          return defaultProps[i];
+        }
+        
+      }
+      return null;
     }
 
     public int getX() {
@@ -38,6 +70,9 @@ public class Prop {
     }
 
     public int getIcon() {
+      if (isAnimated) {
+        return animation.getImg();
+      }
       return this.icon;
     }
 
@@ -53,8 +88,11 @@ public class Prop {
       // example metadata: {teleport:1,2; lock:blue_key}
       metadata_raw = metadata_raw.substring(1, metadata_raw.length() - 1); // cut off the {} and remove any whitespace
       if (metadata_raw.equals("")) {
-        this.metadata.put("none", "none");
-        this.hasMetadata = false;
+        if (metadata.size() == 0) {
+          this.metadata.put("none", "none");
+          this.hasMetadata = false;
+        }
+
       } else {
         String[] metadataArray = metadata_raw.split(";"); // example data now: ["teleport:1,2", "lock:blue_key"]
         String[] pairArray;
@@ -65,13 +103,33 @@ public class Prop {
           // example data now: "teleport":"1,2", "lock":"blue_key"
           this.hasMetadata = true;
         }
+        
+        if (this.metadata.containsKey("animation")) {
+          isAnimated = true;
+          animation = Animation.loadAnimation(metadata.get("animation"));
+        } else {
+          isAnimated = false;
+        }
       }
-
-
     }
 
     public void addMetadataKey(String key, String value) {
       this.metadata.put(key, value);
+    }
+
+    public static void initializeProps() {
+      // must populate defaultProps;
+      String[] propLines = Readers.splitFileNewline(GFU.loadTextFile("assets/defaultprops.txt"));
+      defaultProps = new String[propLines.length][3];
+
+      for (int i = 0; i < propLines.length; i++) {
+        if (Readers.lineValid(propLines[i])) {
+          System.out.println(propLines[i]);
+          defaultProps[i] = Readers.splitLineStr(propLines[i]);
+        } else {
+          defaultProps[i] = new String[3];
+        }
+      }
     }
 
     // Called every time the player directly touches the object.
@@ -267,21 +325,19 @@ public class Prop {
             newProps[i].setMetadata(lineParser[3].trim());
           } else {
             // this is a custom prop
+            System.out.println("Custom prop");
             newProps[i] = customProp(i, lineParser);
           }
         }
+        System.out.println("done?");
 
-        if (impassableProps.contains(newProps[i].getIcon())) {
-          newProps[i].isPassable = false;
-        } else {
-          newProps[i].isPassable = true;
-        }
+
+        newProps[i].isPassable = !(impassableProps.contains(newProps[i].getIcon()));
 
         if (newProps[i].metadata.containsKey("canpass")) {
           newProps[i].isPassable = true;
         } else if (newProps[i].metadata.containsKey("cannotpass")) {
           newProps[i].isPassable = false;
-
         }
 
 
@@ -289,6 +345,7 @@ public class Prop {
 
         // stores the prop's ID in the props map
         Game.propsMap[newProps[i].getX()][newProps[i].getY()] = i;
+        
       }
 
     }
@@ -300,20 +357,39 @@ public class Prop {
 
   public static Prop customProp(int i, String[] lineParser) {
     Prop custom;
-    if (lineParser[0].trim().equals("WALL_GLYPH")) {
+    String key = lineParser[0].trim();
+    String[] args;
+    System.out.println("custom");
+    if (getDefaultProp(key) != null) { // it has the prop
+      System.out.println("go");
+      args = getDefaultProp(key);
+      System.out.println("CURRENTLY DEBUGGING");
+      try {
+        System.out.println(args[0]);
+      } catch (Exception e) {
+        System.out.println(key); // expected: WALL_GLYPH
+          
+      }
+      System.out.println(lineParser[1].trim());
+      System.out.println(lineParser[2].trim());
+      System.out.println(args[2]); // metadata
+      System.out.println("abt to make new prop");
       custom = new Prop(
         i,
-        Game.tileDict.get("GLYPH_ENGRAVED"),
+        Game.tileDict.get(args[1]),
         Integer.parseInt(lineParser[1].trim()),
         Integer.parseInt(lineParser[2].trim())
         );
-      custom.setMetadata("{examine:what a strange symbol...}");
+      //custom.setMetadata(lineParser[3].trim());
+      System.out.println("3");
+      custom.setMetadata(args[2]);
+      System.out.println("4");
 
     } else {
-      System.out.println("No prop with name "+lineParser[0].trim()+" found.");
+      System.out.println("No prop with name '"+key+"' found.");
       custom = null;
     }
-
+    System.out.println("stop");
     return custom;
 
   }
@@ -325,7 +401,6 @@ public class Prop {
     }
   }
 
-  
 
 
   public static Prop getProp(int index) {
