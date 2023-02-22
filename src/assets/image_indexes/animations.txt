@@ -1,0 +1,10 @@
+// KEY: NAME, NUMBER, PERIOD_FRAMES, REPEAT {IMAGE1, IMAGE2, IMAGE3... IMAGE_N}
+// NAME = the name that should be hardcoded
+// NUMBER = the number used internally
+// PERIOD_FRAMES = how many frames before switching to the next IMAGE1
+// REPEAT = whether this animation should repeat or not 
+// {IMAGES} = the list of images to cycle through
+
+GREEN_LIGHT_BLINK, 1001, 60, true, {LIGHT_OFF, LIGHT_GREEN}
+BLUE_LIGHT_BLINK, 1002, 60, true, {LIGHT_OFF, LIGHT_BLUE}
+RED_LIGHT_BLINK, 1003, 60, true, {LIGHT_OFF, LIGHT_RED}
