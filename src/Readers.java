@@ -53,13 +53,13 @@ public class Readers{
 		return true;
 
 	}
+	
 	/* Splits the file into a comma separated String[].
 		Does not care about whitespace, but trims each argument. 
 		If there is metadata at the end of the string, it will be removed.
 		(Only one {} of metadata can be processed!)
 		Empty strings will be removed.
 	*/
-	
 	public static String[] splitLineStr(String text) {
 		ArrayList<String> argmts = new ArrayList<String>();
 		String meta = null;
@@ -102,7 +102,6 @@ public class Readers{
 		int end = text.indexOf("}")+1;
 		return text.substring(start, end);
 	}
-
 
 	public static String subtractMetadata(String text) {
 		int start = text.indexOf("{");

@@ -1,4 +1,4 @@
-/*import GaFr.GFTexture;
+import GaFr.GFTexture;
 
 import GaFr.GFGame;
 import GaFr.GFStamp;
@@ -35,9 +35,9 @@ public class Player {
 
 	public void createImgs(GFTexture texture) {
 
-		/* split up the textures 
+		//split up the textures 
 		
-		match each texture with its component 
+		//match each texture with its component 
 		
 	}
 
@@ -51,4 +51,4 @@ public class Player {
 	}
 
 	
-}*/
+}

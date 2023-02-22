@@ -33,7 +33,6 @@ public class Game extends GFGame
 
   // variables
     // fonts
-    static GFFont alienFont;
     static GFFont englishFont;
 
     // text
@@ -294,7 +293,7 @@ public class Game extends GFGame
 
 
   // Check if the player can move into a free space.
-  boolean canMove(int dx, int dy) { 
+  static boolean canMove(int dx, int dy) { 
     if (((charX+dx) >= GRID_WIDTH) || ((charY+dy) >= GRID_HEIGHT) || ((charX+dx) < 0) || ((charY+dy) < 0)) {
       return false;
     } else if (isPassableXY(charX+dx, charY+dy)) {//(canPass(grid[charX+dx][charY+dy])) {
@@ -305,7 +304,7 @@ public class Game extends GFGame
   }
 
   // Attempt to move into a free space.
-  boolean tryMove(int dx, int dy) {
+  static boolean tryMove(int dx, int dy) {
     if (canMove(dx, dy)) {
       movePlayer(dx, dy);
       return true;
@@ -314,7 +313,7 @@ public class Game extends GFGame
   }
 
   // Force moves the player.
-  void movePlayer(int dx, int dy) {
+  static void movePlayer(int dx, int dy) {
       charX += dx;
       charY += dy;
       Fog.clearFog(charX, charY);
@@ -322,7 +321,7 @@ public class Game extends GFGame
   }
 
   // Attempt to perform an (automatic) action.
-  boolean tryAction(int x, int y) {
+  static boolean tryAction(int x, int y) {
     if (propsMap[x][y] == 0) {
       return false;
     }
@@ -335,7 +334,7 @@ public class Game extends GFGame
   touch actions. 
   It only checks the prop in the direction where you're facing. 
   */
-  public void touchAction() {
+  public static void touchAction() {
     // on tile:
     if ((propsMap[charX][charY] != 0)) {
       Prop.props[propsMap[charX][charY]].tryTouchAction();
@@ -374,7 +373,7 @@ public class Game extends GFGame
   }
 
 
-  public void faceChar(String dir) {
+  public static void faceChar(String dir) {
     if (dir.equals("up")) {
       charDir = 0;
       charImg = 4;
@@ -415,10 +414,8 @@ public class Game extends GFGame
 
   // I/O FUNCTIONS
 
-
   public void onKeyDown(String key, int code, int flags) {
-
-    switch(code) {
+  switch(code) {
       case GFKey.A:
       case GFKey.ArrowLeft: {
         if (!isDialogue) {
@@ -577,7 +574,28 @@ public class Game extends GFGame
     }
   }
 
+  public static void editModePlaceTile() {
+    if (editModePlaceType.equals("tile") ) {
+      grid[charX][charY] = editModePlaceIcon;
+    } else {
+      editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ charX +","+ charY +",{}";
+      System.out.println(editModePlaceIcon + ","+ charX +","+ charY +",{}");
+      propsMap[charX][charY] = editModePlaceIcon;
+      editModeGhostProps.add(new Prop(1,editModePlaceIcon,charX,charY));
+    }
+  }
 
+  public static void editModeChangeIcon(int delta) {
+    
+        editModePlaceIconIndex += delta;
+        if (editModePlaceIconIndex >= editModeTiles.length) {
+          editModePlaceIconIndex = 0;
+        }
+        if (editModePlaceIconIndex < 0) {
+          editModePlaceIconIndex = editModeTiles.length-1;
+        }
+        editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
+  }
 
   // DRAW FUNCTIONS
 
