@@ -7,12 +7,6 @@ import java.lang.Math;
 
 public class Animation{
 
-
-	//
-//BLINKING_GREEN_LIGHT,2,3, {animation:BLINKING_GREEN_LIGHT}
-//ANIMATION,2,5, {animation:BLUE_LIGHT_BLINK}
-
-
 	// A simple animation.
 	// If poll() is run 60x a second, img will switch between
 	// all the images in the images list.
@@ -43,6 +37,7 @@ public class Animation{
 			images[i] = thing;
 		}
 		
+		// initialize the other variables
 		repeat = isRepeat;
 		wait = framesSleep;
 		timeout = framesSleep;
@@ -51,25 +46,28 @@ public class Animation{
 		animations.add(this); // add self to polled list -- this ensures that animations "animate"
 	}
 
-
+	// Returns the current image. 
 	public int getImg() {
 		return this.img;
 	}
 
+	// Polls all animations. 
 	public static void pollAnimations() {
 		for (int i = 0; i < animations.size(); i++) {
 			animations.get(i).poll();
 		}
 	}
 
+	// Populates the defaultAnimations map, from animations.txt. 
 	public static void initializeAnimations() throws FileNotFoundException {
 		String[] animationLines = Readers.splitFileNewline(GFU.loadTextFile("assets/image_indexes/animations.txt"));
 		String[] args;
+
 		for (int i = 0; i < animationLines.length; i++) {
+
 			if (Readers.lineValid(animationLines[i])) {
-				System.out.println(animationLines[i]);
 				args = Readers.splitLineStr(animationLines[i]);
-				// Format: NAME, NUMBER, PERIOD_FRAMES, REPEAT, {META}
+				// Format: NAME, NUMBER, PERIOD_FRAMES, REPEAT, {IMAGES}
 
 				defaultAnimations.put(args[0], new Animation(metaToArr(args[4]), Integer.parseInt(args[2]), Boolean.parseBoolean(args[3])));
 			}
@@ -95,7 +93,8 @@ public class Animation{
 		
 	}
 	
-	public void poll() {
+	// Run once per frame: changes the image as necessary, or changes timeout.
+	private void poll() {
 		if (go) {  // skip not running animations
 			timeout--;
 			if (timeout == 0) {
