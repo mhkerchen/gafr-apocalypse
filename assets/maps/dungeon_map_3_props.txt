@@ -1,11 +1,15 @@
 DOOR_OPEN,3,0,{destination:dungeon_map_3,2,2}
 DOOR_OPEN,19,10,{none:none}
+//levers
 GREEN_LEVER,4,3,{}
 BLUE_LEVER,4,11,{}
 RED_LEVER,18,3,{}
+
+// gates
 GATE_GREEN_H,3,6,{}
 GATE_BLUE_V,6,2,{}
 GATE_RED_V,6,10,{}
+
 WALL_GLYPH,12,1,{}
 WALL_GLYPH,10,4,{}
 WALL_GLYPH,9,11,{}

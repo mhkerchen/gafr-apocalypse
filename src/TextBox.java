@@ -10,29 +10,28 @@ public class TextBox {
 
 
 	public GFFont font;
-	public int fontwidth;
-	public int fontheight;
+	public int fontwidth = 12;
+	public int fontheight = 22;
 
 	public int x;
 	public int y;
 	public int width;
 	public int height;
 
-	public String textBuffer;
+	public String textBuffer; // a buffer of text that is revealed
 	private int textBufferIndex = 0;
 
-	public String displayText;
-	public boolean show;
+	public String displayText; // currently shown text
+	public boolean show = false;
+	public int ctc_timer = 0;
 
+	public static boolean slowText = true;
+	public static int ctc_timeout = 5;
+
+	// a queue containing the text to display
 	private ArrayList<String> allText = new ArrayList<String>();
 
 	private static GFStamp background = new GFStamp(new GFTexture ("assets/images/textbox.png"));
-
-
-	public static boolean slowText = true;
-
-	public int ctc_timer = 0;
-	public static int ctc_timeout = 5;
 	
 	public TextBox (int newx, int newy, int newwidth, int newheight, GFFont newfont) {
 
@@ -46,31 +45,28 @@ public class TextBox {
 		height = newheight;
 		font = newfont;
 
-		fontwidth = 12;//(int)newfont.glyphMap[0].width;
-		fontheight = 22;//(int)newfont.glyphMap[0].height;
-
-		show = false;
-
 	}
 
+	// Clears the displayed text. 
 	public void clearText() {
 		textBuffer = "";
 		displayText = "";
 		textBufferIndex = 0;
 	}
 
+	// Primes a line of text to be displayed.
 	public void setTextSlowDisplay(String newtext) {
+		clearText();
 		textBuffer = splitByLine(newtext);
-		displayText = "";
-		textBufferIndex = 0;
 	}
 
+	// Instantly displays a line of text. 
 	public void setTextFastDisplay(String newtext) {
+		clearText();
 		displayText = splitByLine(newtext);
-		textBuffer = "";
-		textBufferIndex = 0;
 	}
 
+	// Displays a line of text.
 	public void setText(String newtext) {
 		if (slowText) {
 			setTextSlowDisplay(newtext);
@@ -79,6 +75,8 @@ public class TextBox {
 		}
 	}
 
+	// Loads one character from the text buffer. 
+	// If all text is shown, increment the click-to-continue timer. 
 	public void displayOneCharacter() {
 		if ((show) && (textBufferIndex < textBuffer.length())) {
 			displayText = displayText+ textBuffer.substring(textBufferIndex,textBufferIndex+1);
@@ -89,26 +87,28 @@ public class TextBox {
 		}
 	}
 
+	// Splits a string into lines, not breaking up words.
+	// Note: Not height safe. Don't push your luck.
 	private String splitByLine(String instring) {
 		String[] splitString = instring.split(" ");
-		int maxChars = width / fontwidth;
 		int numLines = 1;
-
 		String outstring = splitString[0];
 
 		for (int i = 1; i < splitString.length; i++) {
-			if ( (outstring + " " + splitString[i]).length() <  maxChars*numLines)
+			// if the current string plus the next word is shorter than 
+			// the width of the textbox, add it
+			if ( (outstring + " " + splitString[i]).length() <  (width / fontwidth)*numLines)
 				outstring = outstring + " " + splitString[i];
 			else {
+				// otherwise, add a new line
 				outstring = outstring.trim() + "\n"+splitString[i];
 				numLines++;
 			}
 		}
-
 		return outstring;
-
 	}
 
+	// Draws the textbox and text.
 	public void drawBox() {
 		if (show) {
 			background.moveTo(x,y);
@@ -118,9 +118,7 @@ public class TextBox {
 			} else {
 				font.draw(x+8,y+8, displayText);
 			}
-			
 		}
-		
 	}
 
 	public void show() {
@@ -128,15 +126,20 @@ public class TextBox {
 	}
 
 	public void hide() {
-		show=false;
+		show = false;
 	}
 
+	// Whenever the player hits the Interact key
 	public void onInteract() {
-		if (slowText) {
+		Game.isDialogue = show;
 
-			if ((ctc_timer>ctc_timeout)) { // timeout has passed
+		if (slowText) {
+			// enough time has passed that you can click to continue
+			if ((ctc_timer>ctc_timeout)) { 
 				nextLine();
-			} else if ((textBufferIndex < textBuffer.length())) { // finish the line instantly
+
+			// the line is still going, but you can fast-finish it
+			} else if ((textBufferIndex < textBuffer.length())) { 
 				setTextFastDisplay(textBuffer);
 				ctc_timer = 0;
 			}
@@ -144,14 +147,10 @@ public class TextBox {
 		} else { // automatically ctcs
 			nextLine();
 		}
-		if (show) {
-			Game.isDialogue = true;
-		} else {
-			Game.isDialogue = false;
-		}
-	
 	}
 
+	// Shows the next screen worth of text. 
+	// Lines are split with a / symbol. 
 	public void nextLine() {
 		if (allText.size() == 0) { // if there's no more text
 		
@@ -161,11 +160,11 @@ public class TextBox {
 
 		} else {
 
-			Game.isDialogue = true;
 			show();
 			setText(allText.get(0));
+			Game.isDialogue = true;
 			Sfx.SOUND_DIALOGUE_START.play();
-			allText.remove(0);
+			allText.remove(0); // remove line from queue
 
 		}
 	}
@@ -176,16 +175,8 @@ public class TextBox {
 
 		String[] allLines = lines.split("/");
 		for (int i = 0; i < allLines.length; i++) {
-			allText.add(allLines[i]);
+			allText.add(allLines[i].trim());
 		}
 
 	}
-
-	public void addMultipleLinesShow(String lines) {
-		addMultipleLines(lines);
-		nextLine();
-	}
-
-
-
 }
