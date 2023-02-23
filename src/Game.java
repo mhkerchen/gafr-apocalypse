@@ -81,13 +81,6 @@ public class Game extends GFGame
 
 
     // soundt
-
-    public static GFSound SOUND_STEP = new GFSound("assets/sounds/step.mp3");
-    public static GFSound SOUND_DOOR_OPEN = new GFSound("assets/sounds/doornoise.mp3");
-    public static GFSound SOUND_LEVER_PULL = new GFSound("assets/sounds/lever.mp3");
-    public static GFSound SOUND_DIALOGUE_START = new GFSound("assets/sounds/dialogue_go.mp3");
-    public static GFSound SOUND_BGM = new GFSound("assets/sounds/letting_go_coag.mp3");
-    public static int bgmDuration = 306;
 /*
   static void initSounds() {
     // all sounds are free from pixabay except the bgm
@@ -111,7 +104,7 @@ public class Game extends GFGame
     
     Player.p = new Player();
     Fog.initFog();
-    SOUND_BGM.play();
+    Sfx.SOUND_BGM.play();
 
     try { // initializes textures and tileDict
       textures = indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
@@ -572,8 +565,8 @@ public class Game extends GFGame
   public void onDraw (int frameCount)
   {
     //Animation.pollAnimations();
-    if ( ((frameCount) % (bgmDuration*60)) == 0) {
-      SOUND_BGM.play();
+    if ( ((frameCount) % (Sfx.bgmDuration*60)) == 0) {
+      Sfx.SOUND_BGM.play();
     }
     if (beRightBack) {
       cryBabyScreen.moveTo(0,0);

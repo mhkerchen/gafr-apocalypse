@@ -164,7 +164,7 @@ public class TextBox {
 			Game.isDialogue = true;
 			show();
 			setText(allText.get(0));
-			Game.SOUND_DIALOGUE_START.play();
+			Sfx.SOUND_DIALOGUE_START.play();
 			allText.remove(0);
 
 		}

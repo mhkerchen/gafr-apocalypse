@@ -83,7 +83,7 @@ public class Player {
   void movePlayer(int dx, int dy) {
       x += dx;
       y += dy;
-	  //Game.SOUND_STEP.play();
+	  //Sfx.SOUND_STEP.play();
       Fog.clearFog(x, y);
 
   }
@@ -171,11 +171,11 @@ public class Player {
 
 	
   // Attempt to perform an (automatic) action.
-  boolean tryAction(int x, int y) {
+  void tryAction(int x, int y) {
     if (Game.propsMap[x][y] == 0) {
-      return false;
+      return;
     }
-    return Prop.props[Game.propsMap[x][y]].tryOverlapAction();
+    Prop.props[Game.propsMap[x][y]].tryOverlapAction();
   }
 
 }

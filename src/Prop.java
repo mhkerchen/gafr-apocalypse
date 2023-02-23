@@ -25,49 +25,60 @@ public class Prop {
 
   // A prop has 4 arguments: the id, the icon, and the location in x and y coordinates.
   // Metadata, if any, is put in separately with the setMetadata argument.
-    public Prop(int inid, int inicon, int inx, int iny) {
-        id = inid;
-        icon = inicon;
-        x = inx;
-        y = iny;
-        metadata = new HashMap<String, String>();
-        hasMetadata = false;
-        exists = true;
+  public Prop(int inid, int inicon, int inx, int iny) {
+      id = inid;
+      icon = inicon;
+      x = inx;
+      y = iny;
+      metadata = new HashMap<String, String>();
+      hasMetadata = false;
+      exists = true;
+  }
+
+  // GETTERS/SETTERS
+
+  
+
+
+  public void addMetadataKey(String key, String value) {
+    this.metadata.put(key, value);
+  }
+  
+  public String[] getAttribute(String key) {
+    String[] temp = this.metadata.get(key).split(",");
+    for (int i = 0; i < temp.length; i++) {
+      temp[i] = temp[i].trim();
     }
+    return temp;
+  }
 
-    // GETTERS/SETTERS
+  public int getX() {
+    return this.x;
+  }
 
-    
+  public int getY() {
+    return this.y;
+  }
 
+  public String getString() {
+    return "x: "+this.x+" y: "+this.y+" icon: "+this.icon+" id: "+this.id;
+  }
 
-    public void addMetadataKey(String key, String value) {
-      this.metadata.put(key, value);
+  // Retrieves the index of the Stamp that should be used. 
+  public int getIcon() {
+    if (isAnimated) {
+      return animation.getImg();
     }
+    return this.icon;
+  }
 
+  public boolean canPass() {
+    return this.isPassable;
+  }
 
-    public int getX() {
-      return this.x;
-    }
-
-    public int getY() {
-      return this.y;
-    }
-
-    public String getString() {
-      return "x: "+this.x+" y: "+this.y+" icon: "+this.icon+" id: "+this.id;
-    }
-
-    // Retrieves the index of the Stamp that should be used. 
-    public int getIcon() {
-      if (isAnimated) {
-        return animation.getImg();
-      }
-      return this.icon;
-    }
-
-    public boolean canPass() {
-      return this.isPassable;
-    }
+  public static Prop getProp(int index) {
+    return props[index];
+  }
 
 
     // Retrieves the 3-wide array of a default prop [NAME, IMAGE, METADATA]
@@ -276,93 +287,95 @@ public class Prop {
 
 
   // Called every time the player shares space with the object.
-  public boolean tryOverlapAction() {
-    if ( Game.editMode || !(this.exists)) {
-      // actions are disabled in edit mode
-      // nonexistent items are no longer interacted with
-      return false;
+  public void tryOverlapAction() {
+    if ( Game.editMode || (!this.exists) ) {
+      return;
     }
 
     if (this.metadata.containsKey("teleport")) {
-      int teleportDestX = Integer.parseInt(metadata.get("teleport").trim().split(",")[0]);
-      int teleportDestY = Integer.parseInt(metadata.get("teleport").trim().split(",")[1]);
-      Player.p.setCharX(teleportDestX);
-      Player.p.setCharY(teleportDestY);
-      Fog.clearFog();
-      return true;
+      this.doTeleport();
     } 
-    else if (this.metadata.containsKey("destination")) {
-      return this.doDestination();
-    }else if (this.metadata.containsKey("pickup_item")) {
-      if (Inventory.addToInventory(metadata.get("pickup_item").trim()) == true) {
+    if (this.metadata.containsKey("destination")) {
+      this.doDestination();
+    } 
+    if (this.metadata.containsKey("pickup_item")) {
+      if (Inventory.addToInventory(metadata.get("pickup_item"))) {
         // successful add, hide this item
         this.exists = false;
       } 
-
     }
 
-    return false;
+    return;
   }
 
-  public boolean tryTouchAction() {
+  // Called everytime the player hits Enter while facing an interactible.
+  public void tryTouchAction() {
     if (this.metadata.containsKey("locked") ) {
-      doUnlock();
+      this.doUnlock();
     }
     if (this.metadata.containsKey("examine") ) {
-      doExamine();
+      this.doExamine();
     }
-    if (this.metadata.containsKey("inventory") ) {
+    /*if (this.metadata.containsKey("inventory") ) {
       System.out.println(this.metadata.get("inventory"));
-    }
+    }*/
     if (this.metadata.containsKey("signal")) {
-      doSignal();
+      this.doSignal();
     }
-    return false;
+
+    return;
+  }
+
+  // Teleports the player to another location on the same level.
+  public boolean doTeleport() {
+    String[] args = getAttribute("teleport");
+    Player.p.setCharX(Integer.parseInt(args[0]));
+    Player.p.setCharY(Integer.parseInt(args[1]));
+    Fog.clearFog();
+    return true;
   }
 
   public boolean doUnlock() {
       if ( !Inventory.inventoryTake(metadata.get("locked")) ) {
         // you don't have it, so no door for you
-        System.out.println("You don't have the key.");
-        return false;
+        Game.dialogueBox.addMultipleLines("locked.");
+      } else {
+        this.metadata.remove("locked");
+        this.metadata.put("unlocked", "its_open");
+        this.icon = this.icon - 1; // The standard for switching to the "unlocked" version.
       }
-      System.out.println("You unlocked it.");
-      this.metadata.remove("locked");
-      this.metadata.put("unlocked", "its_open");
-      this.icon = this.icon - 1; // The standard for switching to the "unlocked" version.
       return true;
 
   }
 
   public boolean doExamine() {
-    if (this.metadata.containsKey("examine")) {
-      Game.dialogueBox.addMultipleLines(this.metadata.get("examine"));
-      return true;
-    } else {
-      System.out.println("No examine");
-      return false;
-    }
+    Game.dialogueBox.addMultipleLines(this.metadata.get("examine"));
+    return true;
+    /*if (this.metadata.containsKey("examine")) {
+      
+    }*/
 
   }
 
   public void doSignal() {
     // metadata format: signalcolor, offimage, onimage
-    String[] metastr = metadata.get("signal").split(",");
-    metastr[0] = metastr[0].trim();
-    metastr[1] = metastr[1].trim();
-    metastr[2] = metastr[2].trim();
-    if (signals.contains(metastr[0])) {
-      // it's on, turn it off
-      signals.remove(metastr[0]);
-      signals.add("NOT_"+metastr[0]);
-      this.icon = Game.tileDict.get(metastr[1]);
-      Game.SOUND_LEVER_PULL.play();
+    String[] args = getAttribute("signal");
+    
+    // it's on, turn it off
+    if (signals.contains(args[0])) {
+      signals.remove(args[0]);
+      signals.add("NOT_"+args[0]);
+
+      this.icon = Game.tileDict.get(args[1]);
+      Sfx.SOUND_LEVER_OFF.play();
+
+    // it's off, turn it on
     } else {
-      // it's off, turn it on
-      signals.add(metastr[0]);
-      signals.remove("NOT_"+metastr[0]);
-      this.icon = Game.tileDict.get(metastr[2]);
-      Game.SOUND_LEVER_PULL.play();
+      signals.add(args[0]);
+      signals.remove("NOT_"+args[0]);
+
+      this.icon = Game.tileDict.get(args[2]);
+      Sfx.SOUND_LEVER_ON.play();
 
     }
     allSignalsUpdate();
@@ -371,9 +384,9 @@ public class Prop {
   public static void allSignalsUpdate() {
     // if it contains gate_control or another signal dependent meta,
     // check that it's at the proper state
-    for (int pint = 0; pint < props.length; pint++) {
-      if (props[pint].metadata.containsKey("gate_control")) {
-        props[pint].updateGate();
+    for (int i = 0; i < props.length; i++) {
+      if (props[i].metadata.containsKey("gate_control")) {
+        props[i].updateGate();
       }
     }
   }
@@ -402,38 +415,28 @@ public class Prop {
   public boolean doDestination() {
       if (this.metadata.containsKey("locked")) {
         doUnlock();
-
-      }
-      if (!this.metadata.containsKey("locked")) {
-        String[] destinationMetadata = metadata.get("destination").trim().split(",");
+      } else {
+        String[] args = getAttribute("destination");
         try {
-          if (destinationMetadata.length == 1) {
-            Game.loadLevel("assets/maps/"+destinationMetadata[0]);
+          if (args.length == 1) { // no x,y dest given (will search for spawn)
+            Game.loadLevel("assets/maps/"+args[0]);
             allSignalsUpdate();
             return true;
-          } else if (destinationMetadata.length == 3) {
-            Game.loadLevel("assets/maps/"+destinationMetadata[0], Integer.parseInt(destinationMetadata[1]), Integer.parseInt(destinationMetadata[2]));
+          } else if (args.length == 3) { // x,y dest given
+            Game.loadLevel("assets/maps/"+args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
             allSignalsUpdate();
             return true;
           }
         }
         catch (Exception e) {
-          System.out.println("Failure to load new map.");
+          System.out.println("Failure to load new map at "+"assets/maps/"+args[0]+".");
           e.printStackTrace();
           Game.errorScreen();
         }
         return false;
       }
-      return false;
+      return true;
       
   }
 
-
-
-
-
-
-  public static Prop getProp(int index) {
-    return props[index];
-  }
 }
