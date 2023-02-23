@@ -161,46 +161,30 @@ public class Prop {
   // Props are any tile which can be interacted with.
   public static Prop[] readProps(String propsString) {
     String[] propsArray = Readers.splitFileNewline(propsString);
-    String[] lineParser;
+    String[] args;
     Prop[] newProps = new Prop[propsArray.length];
 
     for (int i = 0; i < propsArray.length; i++) {
-      lineParser = Readers.splitLineStr(propsArray[i]);
+      args = Readers.splitLineStr(propsArray[i]);
 
-      // if the tile is given as an integer
-      if (lineParser.length > 3) {
-        System.out.println("XX"+propsArray[i]);
-        try {
+      if (args.length > 3) {
+        
+        if (Game.tileDict.containsKey(args[0])) { 
 
+          // standard id given
           newProps[i] = new Prop(
             i,
-            Integer.parseInt(lineParser[0]),
-            Integer.parseInt(lineParser[1]),
-            Integer.parseInt(lineParser[2])
+            Game.translate(args[0]),
+            Integer.parseInt(args[1]),
+            Integer.parseInt(args[2])
             );
-            newProps[i].setMetadata(lineParser[3]);
+            newProps[i].setMetadata(args[3]);
 
-        } catch (Exception e ){
-
-          // the tile is given as a name
-
-          if (Game.tileDict.containsKey(lineParser[0])) {
-
-            newProps[i] = new Prop(
-              i,
-              Game.tileDict.get(lineParser[0]),
-              Integer.parseInt(lineParser[1]),
-              Integer.parseInt(lineParser[2])
-              );
-            newProps[i].setMetadata(lineParser[3]);
-
-          } else {
-            
-            // this is a custom prop
-
+        } else {
+          // preset id given
             System.out.println("Custom prop");
-            newProps[i] = customProp(i, lineParser);
-          }
+            newProps[i] = customProp(i, args);
+
         }
 
         // stores the prop's ID in the props map
@@ -239,7 +223,7 @@ public class Prop {
         // Can be intentional behaviour. 
         custom = new Prop(
           i,
-          Game.tileDict.get("NOTHING"),
+          Game.translate("NOTHING"),
           Integer.parseInt(lineParser[1].trim()),
           Integer.parseInt(lineParser[2].trim())
           );
@@ -260,7 +244,7 @@ public class Prop {
   public static void readImpassableProps() {
     String[] lines = GFU.loadTextFile("assets/image_indexes/impassible_props.txt").split("\n");
     for (int i = 0; i < lines.length-1; i++) {
-      impassableProps.add(Game.tileDict.get(lines[i].trim()));
+      impassableProps.add(Game.translate(lines[i].trim()));
     }
   }
 
@@ -301,6 +285,7 @@ public class Prop {
     if (this.metadata.containsKey("pickup_item")) {
       if (Inventory.addToInventory(metadata.get("pickup_item"))) {
         // successful add, hide this item
+        Sfx.PICKUP.play();
         this.exists = false;
       } 
     }
@@ -366,16 +351,16 @@ public class Prop {
       signals.remove(args[0]);
       signals.add("NOT_"+args[0]);
 
-      this.icon = Game.tileDict.get(args[1]);
-      Sfx.SOUND_LEVER_OFF.play();
+      this.icon = Game.translate(args[1]);
+      Sfx.LEVER_OFF.play();
 
     // it's off, turn it on
     } else {
       signals.add(args[0]);
       signals.remove("NOT_"+args[0]);
 
-      this.icon = Game.tileDict.get(args[2]);
-      Sfx.SOUND_LEVER_ON.play();
+      this.icon = Game.translate(args[2]);
+      Sfx.LEVER_ON.play();
 
     }
     allSignalsUpdate();
@@ -399,12 +384,12 @@ public class Prop {
     if (signals.contains(metastr[0].trim())) {
       // signal is ON, switch to OPEN_IMG and set isPassable = true
       // TODO: add support for integer version also
-      this.icon = Game.tileDict.get(metastr[2].trim());
+      this.icon = Game.translate(metastr[2].trim());
       this.isPassable = true;
 
     } else {
       // signal is OFF, switch to CLOSED_IMG and set isPassable = false
-      this.icon = Game.tileDict.get(metastr[1].trim());
+      this.icon = Game.translate(metastr[1].trim());
       this.isPassable = false;
     }
 

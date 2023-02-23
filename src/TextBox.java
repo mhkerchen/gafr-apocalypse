@@ -163,7 +163,7 @@ public class TextBox {
 			show();
 			setText(allText.get(0));
 			Game.isDialogue = true;
-			Sfx.SOUND_DIALOGUE_START.play();
+			Sfx.DIALOGUE_START.play();
 			allText.remove(0); // remove line from queue
 
 		}

@@ -33,7 +33,7 @@ public class Animation{
 		images = new int[imglist.length];
 		int thing;
 		for (int i = 0; i < imglist.length; i++) {
-			thing = Game.tileDict.get(imglist[i]); // problem lives here
+			thing = Game.translate(imglist[i]);
 			images[i] = thing;
 		}
 		

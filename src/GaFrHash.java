@@ -50,4 +50,9 @@ public class GaFrHash<K,V> {
 	public boolean containsKey(K key) {
 		return keys.contains(key);
 	}
+
+	// Get the length.
+	public int size() {
+		return keys.size();
+	}
 }

@@ -104,7 +104,7 @@ public class Game extends GFGame
     
     Player.p = new Player();
     Fog.initFog();
-    Sfx.SOUND_BGM.play();
+    Sfx.BGM.play();
 
     try { // initializes textures and tileDict
       textures = indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
@@ -201,6 +201,23 @@ public class Game extends GFGame
     return texturesArray;
   }
 	
+  static int translate(String tile) {
+    if (tileDict.size() == 0) {
+      System.out.println("Error: tileDict is empty. Has it been initialized?");
+    } else {
+      if (tileDict.containsKey(tile)) {
+        return tileDict.get(tile);
+      } else {
+        System.out.println("Error: Could not find \""+tile+"\" in tileDict.");
+      }
+    }
+    return 0;
+  }
+
+  // Overload -- this one's much simpler
+  static int translate(int tile) {
+    return tile;
+  }
 
   // Given a text file string containing the map layout, constructs the tiles. (Does not include interactibles.)
   static int[][] readInGameMap(String mapString) {
@@ -566,7 +583,7 @@ public class Game extends GFGame
   {
     //Animation.pollAnimations();
     if ( ((frameCount) % (Sfx.bgmDuration*60)) == 0) {
-      Sfx.SOUND_BGM.play();
+      Sfx.BGM.play();
     }
     if (beRightBack) {
       cryBabyScreen.moveTo(0,0);
