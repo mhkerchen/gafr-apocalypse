@@ -323,7 +323,7 @@ public class Prop {
   public boolean doUnlock() {
       if ( !Inventory.inventoryTake(metadata.get("locked")) ) {
         // you don't have it, so no door for you
-        Game.dialogueBox.addMultipleLines("locked.");
+        TextBox.dialogueBox.addMultipleLines("locked.");
       } else {
         this.metadata.remove("locked");
         this.metadata.put("unlocked", "its_open");
@@ -334,7 +334,7 @@ public class Prop {
   }
 
   public boolean doExamine() {
-    Game.dialogueBox.addMultipleLines(this.metadata.get("examine"));
+    TextBox.dialogueBox.addMultipleLines(this.metadata.get("examine"));
     return true;
     /*if (this.metadata.containsKey("examine")) {
       

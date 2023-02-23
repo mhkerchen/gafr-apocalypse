@@ -20,24 +20,9 @@ public class Game extends GFGame
     Gfx.clearColor(Gfx.Color.BLACK);
   }
 
-  /**
-  16-size tile:
-  gridHeight = 28
-  Gridwidth = 50
-  GFStamp[][] tileImages = new GFTexture("assets/tileset.png").splitIntoTilesBySize2D(16,16);
-  
-  32-size tile:
-  gridHeight = 15
-  gridWidth = 24
-  GFStamp[][] tileImages = new GFTexture("assets/tileset_large.png").splitIntoTilesBySize2D(32,32);
-   */
-
   // variables
     // fonts
     static GFFont englishFont;
-
-    // text
-    static TextBox dialogueBox;
 
     // constants
     static final int GRID_HEIGHT = 15;
@@ -67,8 +52,6 @@ public class Game extends GFGame
     // error screen
     static boolean beRightBack = false;
     static GFStamp cryBabyScreen = new GFStamp("assets/images/technical_difficulties.png");
-
-    static boolean isDialogue = false;
 
 
     // Load graphics
@@ -138,7 +121,7 @@ public class Game extends GFGame
 
   initFonts();
     
-  dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
+  TextBox.dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
   }
 
 
@@ -155,7 +138,7 @@ public class Game extends GFGame
 
   static void drawText(){
 
-    dialogueBox.drawBox();
+    TextBox.dialogueBox.drawBox();
   }
 
 
@@ -442,13 +425,13 @@ public class Game extends GFGame
           }
         } else {
           // call a touch action
-          if (!isDialogue) {
+          if (!TextBox.isDialogue) {
             Player.p.touchAction();
           } 
           
         }
 
-        dialogueBox.onInteract(); 
+        TextBox.dialogueBox.onInteract(); 
         
 
         // placement is important. if this statement is placed
@@ -581,7 +564,7 @@ public class Game extends GFGame
   @Override
   public void onDraw (int frameCount)
   {
-    //Animation.pollAnimations();
+    
     if ( ((frameCount) % (Sfx.bgmDuration*60)) == 0) {
       Sfx.BGM.play();
     }
@@ -594,12 +577,11 @@ public class Game extends GFGame
         drawGhostProps();
       } 
       Animation.pollAnimations();
-      //Prop.props[2].animation.poll();
       drawProps();
       drawPlayer();
       drawText();
       if (frameCount%2 == 0) {
-        dialogueBox.displayOneCharacter();
+        TextBox.dialogueBox.displayOneCharacter();
       }
     }
 

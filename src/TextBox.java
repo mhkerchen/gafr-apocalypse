@@ -28,6 +28,9 @@ public class TextBox {
 	public static boolean slowText = true;
 	public static int ctc_timeout = 5;
 
+    static TextBox dialogueBox;
+    static boolean isDialogue = false;
+
 	// a queue containing the text to display
 	private ArrayList<String> allText = new ArrayList<String>();
 
@@ -131,7 +134,7 @@ public class TextBox {
 
 	// Whenever the player hits the Interact key
 	public void onInteract() {
-		Game.isDialogue = show;
+		isDialogue = show;
 
 		if (slowText) {
 			// enough time has passed that you can click to continue
@@ -156,13 +159,13 @@ public class TextBox {
 		
 			hide();
 			clearText();
-			Game.isDialogue = false;
+			isDialogue = false;
 
 		} else {
 
 			show();
 			setText(allText.get(0));
-			Game.isDialogue = true;
+			isDialogue = true;
 			Sfx.DIALOGUE_START.play();
 			allText.remove(0); // remove line from queue
 

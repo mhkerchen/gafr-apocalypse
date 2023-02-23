@@ -135,7 +135,7 @@ public class Player {
 
   public void goDir(String dir) {
 	if (dir.equals("left") ) {
-		if (!Game.isDialogue) {
+		if (!TextBox.isDialogue) {
           faceChar("left");
           if (tryMove(-1,0)) {
             tryAction(x, y);
@@ -143,7 +143,7 @@ public class Player {
         }
 	}
 	if (dir.equals("right") ) {
-        if (!Game.isDialogue) {
+        if (!TextBox.isDialogue) {
           faceChar("right");
           if (tryMove(1,0)) {
             tryAction(x, y);
@@ -151,7 +151,7 @@ public class Player {
         }
 	}
 	if (dir.equals("up") ) {
-        if (!Game.isDialogue) {
+        if (!TextBox.isDialogue) {
           faceChar("up");
           if (tryMove(0,-1)) {
             tryAction(x, y);
@@ -159,7 +159,7 @@ public class Player {
         }
 	}
 	if (dir.equals("down") ) {
-        if (!Game.isDialogue) {
+        if (!TextBox.isDialogue) {
           faceChar("down");
           if (tryMove(0,1)) {
             tryAction(x, y);
