@@ -2,7 +2,6 @@
 
 import GaFr.GFGame;
 import GaFr.GFStamp;
-import GaFr.GFFont;
 import GaFr.Gfx;
 import GaFr.GFU;
 import GaFr.GFTexture;
@@ -21,8 +20,6 @@ public class Game extends GFGame
   }
 
   // variables
-    // fonts
-    static GFFont englishFont;
 
     // constants
     static final int GRID_HEIGHT = 15;
@@ -119,22 +116,11 @@ public class Game extends GFGame
     errorScreen();
   }
 
-  initFonts();
+  TextBox.initFonts();
     
-  TextBox.dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
+  TextBox.dialogueBox = new TextBox(0, 400, 800-16, 100-16, TextBox.englishFont);
   }
 
-
-  static void initFonts() {
-    // initialize the alien text
-      GFStamp[] glyphs;/* = (new GFTexture("assets/fonts/alientext_2x.png", 0xff000000, 0xffffffff)).splitIntoTilesBySize(20,24);
-      alienFont = new GFFont(glyphs,
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ.!" );
-      alienFont.collapseCase();*/
-      glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
-      englishFont = new GFFont(glyphs,
-        "abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
-  }
 
   static void drawText(){
 

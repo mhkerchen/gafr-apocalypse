@@ -25,9 +25,6 @@ public class TextBox {
 	public boolean show = false;
 	public int ctc_timer = 0;
 
-	public static boolean slowText = true;
-	public static int ctc_timeout = 5;
-
     static TextBox dialogueBox;
     static boolean isDialogue = false;
 
@@ -35,6 +32,11 @@ public class TextBox {
 	private ArrayList<String> allText = new ArrayList<String>();
 
 	private static GFStamp background = new GFStamp(new GFTexture ("assets/images/textbox.png"));
+
+	public static boolean slowText = true;
+	public static int ctc_timeout = 5;
+    static GFFont englishFont;
+
 	
 	public TextBox (int newx, int newy, int newwidth, int newheight, GFFont newfont) {
 
@@ -182,4 +184,15 @@ public class TextBox {
 		}
 
 	}
+
+
+
+	// Initialize the fonts (currently just the English font)
+  static void initFonts() {
+      GFStamp[] glyphs;
+      glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
+      englishFont = new GFFont(glyphs,
+        "abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
+  }
+
 }
