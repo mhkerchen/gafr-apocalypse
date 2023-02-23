@@ -29,7 +29,7 @@ DEFAULT_PROPS = name, icon, {metadata}
 
  */
 
- import java.util.*;
+import java.util.*;
 
 public class Readers{
 
@@ -68,7 +68,7 @@ public class Readers{
 		Does not care about whitespace, but trims each argument. 
 		If there is metadata at the end of the string,
 		it will be returned as a single entry with {}.
-		**Will add empty entries, for example "w,x,,z".
+		
 	*/
 	public static String[] splitLineStr(String text) {
 		String meta = null;
@@ -83,7 +83,9 @@ public class Readers{
 		String[] arr = text.split(",");
 
 		for (int i = 0; i < arr.length; i++) { // trim and append nonempty entries
-			argmts.add(arr[i].trim());
+			if (!arr[i].trim().equals("")) { // this statement is load bearing for some reason.
+				argmts.add(arr[i].trim());
+			}
 		}
 
 		if (meta != null) { // add meta back in
