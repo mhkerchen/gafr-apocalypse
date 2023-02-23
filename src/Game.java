@@ -122,11 +122,6 @@ public class Game extends GFGame
   }
 
 
-  static void drawText(){
-
-    TextBox.dialogueBox.drawBox();
-  }
-
 
   static int[] getValidTiles(GFStamp[] tileArray) {
 
@@ -147,8 +142,7 @@ public class Game extends GFGame
   
   static GFStamp[] indexTextures(String tile_filename, GFStamp[][] imageMatrix, int destArraySize) throws FileNotFoundException {
 
-    String tilesText = GFU.loadTextFile(tile_filename+".txt");
-    String[] tilesArray = Readers.splitFileNewline(tilesText);
+    String[] tilesArray = Readers.splitFileNewline(GFU.loadTextFile(tile_filename+".txt"));
     String[] currentLineSplit;
 	  int[] arr;
     String currentLine;
@@ -170,6 +164,7 @@ public class Game extends GFGame
     return texturesArray;
   }
 	
+  // Translates a String tilename into an integer value.
   static int translate(String tile) {
     if (tileDict.size() == 0) {
       System.out.println("Error: tileDict is empty. Has it been initialized?");
@@ -247,7 +242,8 @@ public class Game extends GFGame
       // find the Spawn entry (usually but not always the first object) and spawn there
       Prop currentProp = Prop.getProp(0);
       int propIndex = 0;
-      while (!currentProp.metadata.containsKey("spawn")) {
+      // TODO: error if there's no such prop
+      while ((!currentProp.metadata.containsKey("spawn"))) {
         propIndex++;
         currentProp = Prop.getProp(propIndex);
       }
@@ -332,7 +328,6 @@ public class Game extends GFGame
       case GFKey.D:
       case GFKey.ArrowRight: {
         Player.p.goDir("right");
-        
         break;
       }  
       
@@ -349,18 +344,12 @@ public class Game extends GFGame
       }  
 
       case GFKey.P: {
-        // P is for Print! This prints off some relevant information about your current position.
         System.out.println("current position: "+Player.p.x+","+Player.p.y);
         break;
       }  
 
       case GFKey.E: {
         // E is for Edit! 
-        /**
-          Edit Mode 
-          Upon entering edit mode,
-        
-         */
          if (editMode) {
           System.out.println("Props:");
           System.out.println(editModeProps);
@@ -418,10 +407,10 @@ public class Game extends GFGame
         }
 
         TextBox.dialogueBox.onInteract(); 
-        
-
         // placement is important. if this statement is placed
         // before the freeze check, examine quotes become impassible.
+        
+
         break;
       }
 
@@ -474,11 +463,6 @@ public class Game extends GFGame
         }
         editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
   }
-
-
-
-  /// SOUNDS
-
 
 
 
@@ -546,6 +530,12 @@ public class Game extends GFGame
       }
     }
   }
+
+  
+  static void drawText(){
+    TextBox.dialogueBox.drawBox();
+  }
+
 
   @Override
   public void onDraw (int frameCount)
