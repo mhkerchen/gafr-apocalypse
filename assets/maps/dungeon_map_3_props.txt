@@ -1,5 +1,8 @@
-DOOR_OPEN,3,0,{destination:dungeon_map_3,2,2}
-DOOR_OPEN,19,10,{none:none}
+// the top door seems to not work properly, when it's the first line. FIX.
+
+DOOR_OPEN,3,0,{destination:dungeon_map,2,2}
+DOOR_OPEN,18,10,{destination:dungeon_map,2,2}
+
 //levers
 GREEN_LEVER,4,3,{}
 BLUE_LEVER,4,11,{}

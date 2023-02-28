@@ -15,28 +15,39 @@ import java.lang.Math;
 
 
 public class Player {
-
-
-	// Right now, it's just the player that is a Player. 
-	// Rover might become a Player later as well. 
-
 	// statics
+	public static Player human;
+	public static Player rover;
 	public static Player p;
-    // static variables
-    public int x = 1;
-    public int y = 1;
-    public int img = 0;
-    public int dir = 0;
+	public static Player cur; // either human or rover, depending
+  // static variables
+  public int x = 1;
+  public int y = 1;
+  public int img = 0;
+  //public GFStamp img;
+  // public String imgname;
+  public int dir = 0;
+
+  public boolean show = false;
 
 
-    GFStamp[] playerImgs;// = new GFStamp[16];
+  GFStamp[] playerImgs;// = new GFStamp[16];
 
-	// public static HashMap<Integer,String> animation_key = makeAnimationKey("assets/image_indexes/animation_key.txt");
+  public static int keyTimeout = -1;
 
+  public static String isPressed = "none";
 
-	public Player() {
+  public static int INITIAL_TIMEOUT = 18;
+  public static int DEFAULT_TIMEOUT = 10;
+
+  public static GaFrHash<String, GFStamp> playerTextures = new GaFrHash<String, GFStamp>();
+
+	public Player(String type) {
 		//createImgs(new GFTexture(texture_filename));
 		
+    if (type.equals("player")) {
+      show = true;
+    }
 		x=2;
 		y=2;
 	}
@@ -48,6 +59,17 @@ public class Player {
 	public void setCharY(int val) {
 		y = val;
 	}
+
+  public int getImg() {
+    if (show) {
+      return this.img;
+    }
+    return 0;
+  }
+
+  public void getImgStamp() {
+
+  }
 /*
 	public static HashMap<Integer,String> makeAnimationKey(String filename) {
 		String[] arr = GFU.loadTextFile(filename).split("\n");
@@ -65,7 +87,6 @@ public class Player {
       return false;
     } else if (Game.isPassableXY(x+dx, y+dy)) {//(canPass(grid[charX+dx][charY+dy])) {
       return true;
-      // TODO: check for an impassible prop
     }
     return false;
   }
@@ -83,7 +104,7 @@ public class Player {
   void movePlayer(int dx, int dy) {
       x += dx;
       y += dy;
-	  //Sfx.SOUND_STEP.play();
+	    //Sfx.SOUND_STEP.play();
       Fog.clearFog(x, y);
 
   }
@@ -133,45 +154,63 @@ public class Player {
     } 
   }
 
+  public void pollMove() {
+    String key;
+    int timeout;
+    //System.out.println(isPressed.get("keyDown"));
+    if ( !isPressed.equals("none")) { 
+      // if a key is currently held down
+      // isPressed is the currently pressed key
+      
+
+      if (keyTimeout < 0) { // reset the timer
+        this.goDir(isPressed);
+        keyTimeout = DEFAULT_TIMEOUT;
+      } else { // decrement the timer
+        keyTimeout--;
+      }
+    } else if (keyTimeout > 0 ) {
+      keyTimeout = -1;
+    }
+
+
+  }
+
   public void goDir(String dir) {
-	if (dir.equals("left") ) {
-		if (!TextBox.isDialogue) {
-          faceChar("left");
-          if (tryMove(-1,0)) {
-            tryAction(x, y);
-          }
+    if (!TextBox.isDialogue) {
+      if (dir.equals("left") || dir.equals("keyLeft")) {
+        faceChar("left");
+        if (tryMove(-1,0)) {
+          tryAction(x, y);
         }
-	}
-	if (dir.equals("right") ) {
-        if (!TextBox.isDialogue) {
-          faceChar("right");
-          if (tryMove(1,0)) {
-            tryAction(x, y);
-          }
+      }
+      if (dir.equals("right") || dir.equals("keyRight")) {
+        faceChar("right");
+        if (tryMove(1,0)) {
+          tryAction(x, y);
         }
-	}
-	if (dir.equals("up") ) {
-        if (!TextBox.isDialogue) {
-          faceChar("up");
-          if (tryMove(0,-1)) {
-            tryAction(x, y);
-          }
+      }
+      if (dir.equals("up") || dir.equals("keyUp")) {
+        faceChar("up");
+        if (tryMove(0,-1)) {
+          tryAction(x, y);
         }
-	}
-	if (dir.equals("down") ) {
-        if (!TextBox.isDialogue) {
-          faceChar("down");
-          if (tryMove(0,1)) {
-            tryAction(x, y);
-          }
+      }
+      if (dir.equals("down") || dir.equals("keyDown")) {
+        faceChar("down");
+        if (tryMove(0,1)) {
+          tryAction(x, y);
         }
-	}
+      }
+
+    }
 		
   }
 
 	
   // Attempt to perform an (automatic) action.
   void tryAction(int x, int y) {
+    System.out.println("Try action WHEE: "+Game.propsMap[x][y]);
     if (Game.propsMap[x][y] == 0) {
       return;
     }

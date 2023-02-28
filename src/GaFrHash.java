@@ -28,7 +28,10 @@ public class GaFrHash<K,V> {
 	// Place a new key, value pair on the "hashmap".
 	public void put (K key, V value) {
 		if (this.containsKey(key)) {
-			System.out.println("warning; duplicate key detected in hashmap");
+			// replace the preexisting value
+			int index = keys.indexOf(key);
+			values.set(index, value);
+
 		}
 		keys.add(key);
 		values.add(value);

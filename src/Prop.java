@@ -25,8 +25,11 @@ public class Prop {
 
   // A prop has 4 arguments: the id, the icon, and the location in x and y coordinates.
   // Metadata, if any, is put in separately with the setMetadata argument.
+
+  
   public Prop(int inid, int inicon, int inx, int iny) {
-      id = inid;
+      id = inid+1; // otherwise, the 0th prop never gets touched :(
+      System.out.println("Prop ID: "+inid);
       icon = inicon;
       x = inx;
       y = iny;
@@ -81,16 +84,16 @@ public class Prop {
   }
 
 
-    // Retrieves the 3-wide array of a default prop [NAME, IMAGE, METADATA]
-    public static String[] getDefaultProp(String name) {
-      
-      for (int i = 0; i < defaultProps.length; i++) {
-        if (defaultProps[i][0].equals(name)) {
-          return defaultProps[i];
-        }
+  // Retrieves the 3-wide array of a default prop [NAME, IMAGE, METADATA]
+  public static String[] getDefaultProp(String name) {
+    
+    for (int i = 0; i < defaultProps.length; i++) {
+      if (defaultProps[i][0].equals(name)) {
+        return defaultProps[i];
       }
-      return null;
     }
+    return null;
+  }
 
 
     // METADATA SETTERS
@@ -105,7 +108,7 @@ public class Prop {
       } else {
         metadata_raw = metadata_raw.trim();
       }
-      
+      System.out.println(metadata_raw);
       // no metadata to be added
       if (metadata_raw == null || metadata_raw.equals("")) {
         if (metadata.size() == 0) {
@@ -295,6 +298,9 @@ public class Prop {
 
   // Called everytime the player hits Enter while facing an interactible.
   public void tryTouchAction() {
+    if ( Game.editMode || (!this.exists) ) {
+      return;
+    }
     if (this.metadata.containsKey("locked") ) {
       this.doUnlock();
     }
@@ -323,10 +329,13 @@ public class Prop {
   public boolean doUnlock() {
       if ( !Inventory.inventoryTake(metadata.get("locked")) ) {
         // you don't have it, so no door for you
+        Sfx.KEYCARD_FAILURE.play();
         TextBox.dialogueBox.addMultipleLines("locked.");
       } else {
         this.metadata.remove("locked");
         this.metadata.put("unlocked", "its_open");
+        this.isPassable = true;
+        Sfx.KEYCARD_SUCCESS.play();
         this.icon = this.icon - 1; // The standard for switching to the "unlocked" version.
       }
       return true;
@@ -398,9 +407,7 @@ public class Prop {
 
   // Go to the destination pointed to by this prop
   public boolean doDestination() {
-      if (this.metadata.containsKey("locked")) {
-        doUnlock();
-      } else {
+      if (!this.metadata.containsKey("locked")) {
         String[] args = getAttribute("destination");
         try {
           if (args.length == 1) { // no x,y dest given (will search for spawn)

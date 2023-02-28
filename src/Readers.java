@@ -45,6 +45,7 @@ public class Readers{
 		for (int i = 0; i < textSplit.length; i++) {
 			if (lineValid(textSplit[i])) {
 				manipulate.add(textSplit[i].trim());
+				// System.out.println(textSplit[i].trim());
 			}
 		}
 

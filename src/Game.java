@@ -57,7 +57,9 @@ public class Game extends GFGame
     static GFStamp[] textures;// = new GFStamp[TEXTURES_QTY];
     static GaFrHash<String, Integer> tileDict = new GaFrHash<String, Integer>();
 
-    static Animation lightBlink;
+    //static Animation lightBlink;
+
+    // Keyboard handling
 
 
     // soundt
@@ -82,9 +84,11 @@ public class Game extends GFGame
       s.centerPin();
     }
     
-    Player.p = new Player();
+    Player.p = new Player("player");
     Fog.initFog();
     Sfx.BGM.play();
+
+    Player.isPressed = "none";
 
     try { // initializes textures and tileDict
       textures = indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
@@ -321,25 +325,26 @@ public class Game extends GFGame
   switch(code) {
       case GFKey.A:
       case GFKey.ArrowLeft: {
-        Player.p.goDir("left");
+        Player.isPressed = "keyLeft";
         break;
       }
 
       case GFKey.D:
       case GFKey.ArrowRight: {
-        Player.p.goDir("right");
+        Player.isPressed = "keyRight";
         break;
       }  
       
       case GFKey.W:
       case GFKey.ArrowUp: {
-        Player.p.goDir("up");
+        Player.isPressed = "keyUp";
         break;
       }
 
       case GFKey.S:
-      case GFKey.ArrowDown: {
-        Player.p.goDir("down");
+      case GFKey.ArrowDown: 
+      {
+        Player.isPressed = "keyDown";
         break;
       }  
 
@@ -441,6 +446,49 @@ public class Game extends GFGame
     }
   }
 
+  @Override
+  public void onKeyUp(String key, int code, int flags) {
+    switch(code) {
+      case GFKey.A:
+      case GFKey.ArrowLeft: {
+        if (Player.isPressed.equals("keyLeft")) {
+          Player.isPressed = "none";
+          Player.keyTimeout = Player.INITIAL_TIMEOUT;
+        }
+        break;
+      }
+
+      case GFKey.D:
+      case GFKey.ArrowRight: {
+        if (Player.isPressed.equals("keyRight")) {
+          Player.isPressed = "none";
+          Player.keyTimeout = Player.INITIAL_TIMEOUT;
+        }
+        break;
+      }
+
+      case GFKey.W:
+      case GFKey.ArrowUp: {
+        if (Player.isPressed.equals("keyUp")) {
+          Player.isPressed = "none";
+          
+          Player.keyTimeout = Player.INITIAL_TIMEOUT;
+        }
+        break;
+      }
+
+      case GFKey.S:
+      case GFKey.ArrowDown: {
+        if (Player.isPressed.equals("keyDown")) {
+          Player.isPressed = "none";
+          Player.keyTimeout = Player.INITIAL_TIMEOUT;
+        }
+        break;
+      }
+
+    }
+  }
+
   public static void editModePlaceTile() {
     if (editModePlaceType.equals("tile") ) {
       grid[Player.p.x][Player.p.y] = editModePlaceIcon;
@@ -536,6 +584,10 @@ public class Game extends GFGame
     TextBox.dialogueBox.drawBox();
   }
 
+  @Override
+  public void onUpdate() {
+    Player.p.pollMove();
+  }
 
   @Override
   public void onDraw (int frameCount)
