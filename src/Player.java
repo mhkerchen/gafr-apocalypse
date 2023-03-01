@@ -209,25 +209,24 @@ public class Player {
   */
   public void touchAction() {
     // on tile:
-    System.out.println("Try touch action: "+Game.propsMap[x][y]);
-    if ((Game.propsMap[x][y] != 0)) {
-      Prop.props[Game.propsMap[x][y]].tryTouchAction();
+    if (Prop.isValid(x,y)) {
+      Prop.propAt(x,y).tryTouchAction();
     } 
     // above:
-    else if ( (dir==0) && (Game.propsMap[x][y-1] != 0)) {
-      Prop.props[Game.propsMap[x][y-1]].tryTouchAction();
+    else if ( (dir==0) && (Prop.isValid(x,y-1))) {
+      Prop.propAt(x,y-1).tryTouchAction();
     } 
     // below:
-    else if ( (dir==2) && (Game.propsMap[x][y+1] != 0)) {
-      Prop.props[Game.propsMap[x][y+1]].tryTouchAction();
+    else if ( (dir==2) && (Prop.isValid(x,y+1))) {
+      Prop.propAt(x,y+1).tryTouchAction();
     } 
     // right:
-    else if ( (dir==1) && (Game.propsMap[x+1][y] != 0)) {
-      Prop.props[Game.propsMap[x+1][y]].tryTouchAction();
+    else if ( (dir==1) && (Prop.isValid(x+1,y))) {
+      Prop.propAt(x+1,y).tryTouchAction();
     } 
     // left:
-    else if ( (dir==3) && (Game.propsMap[x-1][y] != 0)) {
-      Prop.props[Game.propsMap[x-1][y]].tryTouchAction();
+    else if ( (dir==3) && (Prop.isValid(x-1,y))) {
+      Prop.propAt(x-1,y).tryTouchAction();
     } 
   }
 
@@ -287,11 +286,9 @@ public class Player {
 	
   // Attempt to perform an (automatic) action.
   void tryAction(int x, int y) {
-    if (Game.propsMap[x][y] == 0) {
-      return;
+    if (Prop.isValid(x,y)) {
+      Prop.propAt(x,y).tryOverlapAction();
     }
-    System.out.println("Try action: "+Game.propsMap[x][y]);
-    Prop.props[Game.propsMap[x][y]].tryOverlapAction();
   }
 
 }

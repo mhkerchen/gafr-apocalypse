@@ -28,7 +28,7 @@ public class Prop {
 
   
   public Prop(int inid, int inicon, int inx, int iny) {
-      id = inid+1; // otherwise, the 0th prop never gets touched :(
+      id = inid; 
       System.out.println("Prop ID: "+inid);
       icon = inicon;
       x = inx;
@@ -166,6 +166,7 @@ public class Prop {
     String[] propsArray = Readers.splitFileNewline(propsString);
     String[] args;
     Prop[] newProps = new Prop[propsArray.length];
+    //clearPropsList();
 
     for (int i = 0; i < propsArray.length; i++) {
       args = Readers.splitLineStr(propsArray[i]);
@@ -199,6 +200,15 @@ public class Prop {
     }
 
     return newProps;
+  }
+
+
+  public static void clearPropsList() {
+    for (int y = 0; y < Game.GRID_HEIGHT; y++) {
+      for (int x = 0; x < Game.GRID_WIDTH; x++) {
+        Game.propsMap[x][y] = -1;
+      }
+    }
   }
 
   // Creates a prop with preset metadata.
@@ -275,6 +285,7 @@ public class Prop {
 
   // Called every time the player shares space with the object.
   public void tryOverlapAction() {
+    System.out.println("Overlapping "+this.id);
     if ( Game.editMode || (!this.exists) ) {
       return;
     }
@@ -429,6 +440,35 @@ public class Prop {
       }
       return true;
       
+  }
+
+
+
+  // Determine if there is a prop at position x,y.
+  public static boolean isValid(int x, int y) {
+    for (int prop = 0; prop < props.length; prop++) {
+      if (props[prop]==null) {
+        return false; 
+      } else if (props[prop].x == x && props[prop].y == y){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Returns the first prop at a specific location. 
+  public static Prop propAt(int x, int y) {
+    for (int prop = 0; prop < props.length; prop++) {
+      if (props[prop]==null) {
+        System.out.println("Error: No prop found at "+x+", "+y+" (case 1)");
+        return null;
+      } else if (props[prop].x == x && props[prop].y == y){
+        return props[prop];
+      }
+    }
+    System.out.println("Error: No prop found at "+x+", "+y+" (case 1)");
+    return null;
+
   }
 
 }

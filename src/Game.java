@@ -220,10 +220,10 @@ public class Game extends GFGame
   // Returns false if it is not passable, or if it is invalid.
   public static boolean isPassableXY(int x, int y) {
     if (isValidTile(x,y) && (canPass(grid[x][y]))) {
-      if (propsMap[x][y] == 0 ) {
+      if ( !Prop.isValid(x,y) ) {
         return true;
       } else {
-        return Prop.props[propsMap[x][y]].canPass();
+        return Prop.propAt(x,y).canPass();
       }
     }
     return false;
