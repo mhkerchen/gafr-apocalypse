@@ -362,6 +362,7 @@ public class Prop {
 
   }
 
+
   public void doSignal() {
     // metadata format: signalcolor, offimage, onimage
     String[] args = getAttribute("signal");
@@ -389,11 +390,43 @@ public class Prop {
   public static void allSignalsUpdate() {
     // if it contains gate_control or another signal dependent meta,
     // check that it's at the proper state
+
+    checkCombinedSignals();
     for (int i = 0; i < props.length; i++) {
       if (props[i].metadata.containsKey("gate_control")) {
         props[i].updateGate();
       }
     }
+  }
+
+
+  // Combines any signals as required. 
+  public static void checkCombinedSignals() {
+    if (signals.contains("BLUE") && signals.contains("RED")) { // should contain blue_red
+      signals.add("RED_BLUE");
+      if (signals.contains("NOT_RED_BLUE")) {signals.remove("NOT_RED_BLUE");}
+    } else {
+      signals.add("NOT_RED_BLUE");
+      if (signals.contains("RED_BLUE")) {signals.remove("RED_BLUE");}
+    }
+    
+    if (signals.contains("BLUE") && signals.contains("GREEN")) {
+      signals.add("BLUE_GREEN");
+      if (signals.contains("NOT_BLUE_GREEN")) {signals.remove("NOT_BLUE_GREEN");}
+    } else {
+      signals.add("NOT_BLUE_GREEN");
+      if (signals.contains("BLUE_GREEN")) {signals.remove("BLUE_GREEN");}
+    }
+
+    
+    if (signals.contains("RED") && signals.contains("GREEN")) {
+      signals.add("RED_GREEN");
+      if (signals.contains("NOT_RED_GREEN")) {signals.remove("NOT_RED_GREEN");}
+    } else {
+      signals.add("NOT_RED_GREEN");
+      if (signals.contains("RED_GREEN")) {signals.remove("RED_GREEN");}
+    }
+
   }
 
   public void updateGate() {
