@@ -10,6 +10,7 @@ public class Animation{
 	// A simple animation.
 	// If poll() is run 60x a second, img will switch between
 	// all the images in the images list.
+	// Designed for a simple animating item (i.e. not character animations)
 	
 	// How it works: the img field replaces the icon field of a prop.
 	// The code in the animation changes img, so prop will read img. 
@@ -29,21 +30,9 @@ public class Animation{
 
 	public Animation(String[] imglist, int framesSleep, boolean isRepeat) {
 
-		// convert all strings into integers
-		images = new int[imglist.length];
-		int thing;
-		for (int i = 0; i < imglist.length; i++) {
-			thing = Game.translate(imglist[i]);
-			images[i] = thing;
-		}
-		
-		// initialize the other variables
-		repeat = isRepeat;
-		wait = framesSleep;
-		timeout = framesSleep;
-		img = images[0];
-
+		this.setAnimation(imglist, framesSleep, isRepeat);
 		animations.add(this); // add self to polled list -- this ensures that animations "animate"
+
 	}
 
 	// Returns the current image. 
@@ -116,6 +105,24 @@ public class Animation{
 	// stops (more accurately, freezes) an animation
 	public void endAnimation() { 
 		go = false;
+	}
+
+	public void setAnimation(String[] imglist, int framesSleep, boolean isRepeat) {
+
+
+		// convert all strings into integers
+		images = new int[imglist.length];
+		int thing;
+		for (int i = 0; i < imglist.length; i++) {
+			thing = Game.translate(imglist[i]);
+			images[i] = thing;
+		}
+		
+		// initialize the other variables
+		repeat = isRepeat;
+		wait = framesSleep;
+		timeout = framesSleep;
+		img = images[0];
 	}
 
 }

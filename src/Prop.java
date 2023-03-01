@@ -320,8 +320,8 @@ public class Prop {
   // Teleports the player to another location on the same level.
   public boolean doTeleport() {
     String[] args = getAttribute("teleport");
-    Player.p.setCharX(Integer.parseInt(args[0]));
-    Player.p.setCharY(Integer.parseInt(args[1]));
+    Player.cur.setCharX(Integer.parseInt(args[0]));
+    Player.cur.setCharY(Integer.parseInt(args[1]));
     Fog.clearFog();
     return true;
   }

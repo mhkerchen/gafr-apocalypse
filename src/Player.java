@@ -1,11 +1,10 @@
 import GaFr.GFTexture;
 
 import GaFr.GFGame;
-import GaFr.GFStamp;
-import GaFr.GFFont;
 import GaFr.Gfx;
 import GaFr.GFU;
 import GaFr.GFTexture;
+import GaFr.GFStamp;
 import GaFr.GFKey;
 
 import java.util.*;
@@ -17,22 +16,12 @@ import java.lang.Math;
 public class Player {
 	// statics
 	public static Player human;
-	public static Player rover;
-	public static Player p;
+	public static Player robot;
 	public static Player cur; // either human or rover, depending
-  // static variables
-  public int x = 1;
-  public int y = 1;
-  public int img = 0;
-  //public GFStamp img;
-  // public String imgname;
-  public int dir = 0;
 
-  public boolean show = false;
+  public static int IMAGE_INDEX = 300;
 
-
-  GFStamp[] playerImgs;// = new GFStamp[16];
-
+  
   public static int keyTimeout = -1;
 
   public static String isPressed = "none";
@@ -40,17 +29,103 @@ public class Player {
   public static int INITIAL_TIMEOUT = 18;
   public static int DEFAULT_TIMEOUT = 10;
 
-  public static GaFrHash<String, GFStamp> playerTextures = new GaFrHash<String, GFStamp>();
+  // static variables
+  public int x = 1;
+  public int y = 1;
+  public GFStamp img;
+  public String prefix;
+  public String imgname;
+  public int dir = 0;
 
-	public Player(String type) {
+  public Animation animation;
+
+  public boolean show = false;
+
+  public GaFrHash<String, GFStamp> characterTextures = new GaFrHash<String, GFStamp>();
+  // VERY IMPORTANT: this is NOT static!
+  // The robot and the player both have their own copy of this.
+
+	public Player(String type, String new_prefix) {
 		//createImgs(new GFTexture(texture_filename));
 		
+    
     if (type.equals("player")) {
       show = true;
     }
 		x=2;
 		y=2;
+
+    prefix = new_prefix;
+
+    //this.animation = new Animation();
 	}
+
+  public static void initPlayers() {
+    
+    human = new Player("player", "HUMAN");
+    robot = new Player("robot", "ROBOT");
+    cur = human;
+
+
+    // load textures in
+    human.loadTextures("assets/image_indexes/characters/player.txt");
+    robot.loadTextures("assets/image_indexes/characters/robot.txt");
+
+    human.setImg("FACE_DOWN");
+    robot.setImg("FACE_DOWN");
+  }
+
+
+  void loadTextures (String filename) {
+    System.out.println("Start");
+    String[] textureLines;
+    try {
+      textureLines = Readers.splitFileNewline(GFU.loadTextFile(filename));
+    } catch (Exception e) {
+      System.out.println("Error opening file \""+filename+"\".");
+      textureLines = null;
+    }
+    GFStamp[][] images = new GFTexture("assets/images/characters.png").splitIntoTilesBySize2D(32,32);
+    
+    for (GFStamp s: new GFU.Iter2D<GFStamp>(images)) {
+      s.centerPin();
+    }
+
+    String[] args;
+    int tempx;
+    int tempy;
+
+    for (int i = 0; i < textureLines.length; i++) {
+      System.out.println(i);
+      System.out.println(textureLines[i]);
+      System.out.println(textureLines.length);
+      args = Readers.splitLineStr(textureLines[i]);
+      tempx = Integer.parseInt(args[1]);
+      tempy = Integer.parseInt(args[2]);
+
+      characterTextures.put(args[0], images[tempx][tempy]);
+
+      // and then put this stuff into the main textures 
+      // for animation compatibility
+
+      // player textures start with 300
+      Game.textures.put(IMAGE_INDEX, images[tempx][tempy]);
+
+      Game.tileDict.put(this.prefix+"_"+args[0], IMAGE_INDEX);
+      IMAGE_INDEX++;
+    }
+    System.out.println("done");
+    characterTextures.print();
+
+  }
+
+  public static void setPlayer(String name) {
+    if (name.equals("human")) {
+      cur = human;
+    } else {
+      cur = robot;
+    }
+  }
 
 	public void setCharX(int val) {
 		x = val;
@@ -60,26 +135,27 @@ public class Player {
 		y = val;
 	}
 
-  public int getImg() {
-    if (show) {
+  public GFStamp getImg() {
+    
+    if (this.img == null) {
+      System.out.println("Character image is null");
+    }
+    if (show && (this.img != null)) {
       return this.img;
     }
-    return 0;
+    return characterTextures.get("NOTHING");
   }
 
-  public void getImgStamp() {
-
+  public void setImg(String imgnamen) {
+    this.imgname = this.prefix +"_"+imgnamen;
+    if (Game.tileDict.containsKey(imgname)) {
+      this.img = Game.textures.get(Game.translate(imgname));
+    } else {
+      System.out.println("WARNING: no image \""+imgname+"\" found.");
+      this.img = null;
+    }
   }
-/*
-	public static HashMap<Integer,String> makeAnimationKey(String filename) {
-		String[] arr = GFU.loadTextFile(filename).split("\n");
-		String[] split;
-		for (int i = 0; i < arr.length; i++) {
-			split = arr[i].split(",");
-			//animation_key.put(Integer.parseToInt(split[0].trim()), arr[1].trim())
-		}
-	}
-*/
+
 
   // Check if the player can move into a free space.
   boolean canMove(int dx, int dy) { 
@@ -112,16 +188,16 @@ public class Player {
   public void faceChar(String ndir) {
     if (ndir.equals("up")) {
       dir = 0;
-      img = 4;
+      setImg("FACE_UP");
     } else if (ndir.equals("right")) {
       dir = 1;
-      img = 8;
+      setImg("FACE_RIGHT");
     } else if (ndir.equals("down")) {
       dir = 2;
-      img = 0;
+      setImg("FACE_DOWN");
     } else {
       dir = 3;
-      img = 12;
+      setImg("FACE_LEFT");
     }
   }
 
@@ -133,6 +209,7 @@ public class Player {
   */
   public void touchAction() {
     // on tile:
+    System.out.println("Try touch action: "+Game.propsMap[x][y]);
     if ((Game.propsMap[x][y] != 0)) {
       Prop.props[Game.propsMap[x][y]].tryTouchAction();
     } 
@@ -210,10 +287,10 @@ public class Player {
 	
   // Attempt to perform an (automatic) action.
   void tryAction(int x, int y) {
-    System.out.println("Try action WHEE: "+Game.propsMap[x][y]);
     if (Game.propsMap[x][y] == 0) {
       return;
     }
+    System.out.println("Try action: "+Game.propsMap[x][y]);
     Prop.props[Game.propsMap[x][y]].tryOverlapAction();
   }
 
