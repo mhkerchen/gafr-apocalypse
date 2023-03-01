@@ -168,6 +168,12 @@ public class Game extends GFGame
     return textures.get(tile);
   }
 
+  static void addTile(int id, String name, GFStamp stamp) {
+
+    textures.put(id, stamp);
+    tileDict.put(name, id);
+  }
+
   // Given a text file string containing the map layout, constructs the tiles. (Does not include interactibles.)
   static int[][] readInGameMap(String mapString) {
     

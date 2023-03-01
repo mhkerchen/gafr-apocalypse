@@ -19,7 +19,7 @@ public class Player {
 	public static Player robot;
 	public static Player cur; // either human or rover, depending
 
-  public static int IMAGE_INDEX = 300;
+  public static int imageIndex = 300;
 
   
   public static int keyTimeout = -1;
@@ -30,8 +30,8 @@ public class Player {
   public static int DEFAULT_TIMEOUT = 10;
 
   // static variables
-  public int x = 1;
-  public int y = 1;
+  public int x = 2;
+  public int y = 2;
   public GFStamp img;
   public String prefix;
   public String imgname;
@@ -41,7 +41,7 @@ public class Player {
 
   public boolean show = false;
 
-  public GaFrHash<String, GFStamp> characterTextures = new GaFrHash<String, GFStamp>();
+  //public GaFrHash<String, GFStamp> characterTextures = new GaFrHash<String, GFStamp>();
   // VERY IMPORTANT: this is NOT static!
   // The robot and the player both have their own copy of this.
 
@@ -52,10 +52,11 @@ public class Player {
     if (type.equals("player")) {
       show = true;
     }
-		x=2;
-		y=2;
+    
+    this.prefix = new_prefix;
+    this.loadTextures("assets/image_indexes/characters/"+type+".txt");
 
-    prefix = new_prefix;
+    this.setImg("FACE_DOWN");
 
     //this.animation = new Animation();
 	}
@@ -63,21 +64,22 @@ public class Player {
   public static void initPlayers() {
     
     human = new Player("player", "HUMAN");
+    Game.tileDict.print();
     robot = new Player("robot", "ROBOT");
+    Game.tileDict.print();
     cur = human;
 
 
-    // load textures in
-    human.loadTextures("assets/image_indexes/characters/player.txt");
-    robot.loadTextures("assets/image_indexes/characters/robot.txt");
-
-    human.setImg("FACE_DOWN");
-    robot.setImg("FACE_DOWN");
   }
 
 
+  // Loads textures from the given file into the main textures dict.
+  // They are tagged with the prefix (either HUMAN_ or ROBOT_).
   void loadTextures (String filename) {
-    System.out.println("Start");
+
+    System.out.println("Current prefix is: "+this.prefix);
+    
+    // split data into lines
     String[] textureLines;
     try {
       textureLines = Readers.splitFileNewline(GFU.loadTextFile(filename));
@@ -85,8 +87,9 @@ public class Player {
       System.out.println("Error opening file \""+filename+"\".");
       textureLines = null;
     }
+
+    // split and prepare images
     GFStamp[][] images = new GFTexture("assets/images/characters.png").splitIntoTilesBySize2D(32,32);
-    
     for (GFStamp s: new GFU.Iter2D<GFStamp>(images)) {
       s.centerPin();
     }
@@ -96,29 +99,19 @@ public class Player {
     int tempy;
 
     for (int i = 0; i < textureLines.length; i++) {
-      System.out.println(i);
-      System.out.println(textureLines[i]);
-      System.out.println(textureLines.length);
       args = Readers.splitLineStr(textureLines[i]);
       tempx = Integer.parseInt(args[1]);
       tempy = Integer.parseInt(args[2]);
+      
 
-      characterTextures.put(args[0], images[tempx][tempy]);
+      Game.addTile(imageIndex, this.prefix+"_"+args[0], images[tempx][tempy]);
+      imageIndex++;
 
-      // and then put this stuff into the main textures 
-      // for animation compatibility
-
-      // player textures start with 300
-      Game.textures.put(IMAGE_INDEX, images[tempx][tempy]);
-
-      Game.tileDict.put(this.prefix+"_"+args[0], IMAGE_INDEX);
-      IMAGE_INDEX++;
     }
-    System.out.println("done");
-    characterTextures.print();
 
   }
 
+  // Set the current player. 
   public static void setPlayer(String name) {
     if (name.equals("human")) {
       cur = human;
@@ -143,7 +136,7 @@ public class Player {
     if (show && (this.img != null)) {
       return this.img;
     }
-    return characterTextures.get("NOTHING");
+    return Game.textures.get(Game.translate("NOTHING"));
   }
 
   public void setImg(String imgnamen) {
@@ -185,6 +178,7 @@ public class Player {
 
   }
 
+  // Changes the direction the player is moving. 
   public void faceChar(String ndir) {
     if (ndir.equals("up")) {
       dir = 0;
@@ -205,7 +199,6 @@ public class Player {
   Attempt to perform a manual action
   When the player hits the touch action button (default Space and/or Enter) check for and execute any
   touch actions. 
-  It only checks the prop in the direction where you're facing. 
   */
   public void touchAction() {
     // on tile:
@@ -233,31 +226,37 @@ public class Player {
   public void pollMove() {
     String key;
     int timeout;
-    //System.out.println(isPressed.get("keyDown"));
-    if ( !isPressed.equals("none")) { 
-      // if a key is currently held down
-      // isPressed is the currently pressed key
-      
+    if ( !isPressed.equals("none")) { // provided some key is pressed down
 
-      if (keyTimeout < 0) { // reset the timer
+      if (keyTimeout < 0) { // this is a "fresh press", so move and start the countdown
+
         this.goDir(isPressed);
         keyTimeout = DEFAULT_TIMEOUT;
+
       } else { // decrement the timer
         keyTimeout--;
       }
-    } else if (keyTimeout > 0 ) {
+
+    } else if (keyTimeout > 0 ) { 
+      // reset the timer, to wait for another key press
       keyTimeout = -1;
     }
 
 
   }
 
+  // Move in a direction, as if by keypress, and then check for action.
   public void goDir(String dir) {
     if (!TextBox.isDialogue) {
+
       if (dir.equals("left") || dir.equals("keyLeft")) {
         faceChar("left");
         if (tryMove(-1,0)) {
-          tryAction(x, y);
+          tryAction(x, y); // run an overlap action after moving
+        } else {
+          ;
+          //tryTouchAction(x,y); // run a touch action if you don't move
+          // undecided
         }
       }
       if (dir.equals("right") || dir.equals("keyRight")) {
