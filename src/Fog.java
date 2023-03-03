@@ -15,7 +15,6 @@ import java.lang.Math;
 public class Fog {
 
     public static int fogOfWar[][] = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
-    public static int[][][] fowHistory = new int[Game.totalMaps][Game.GRID_WIDTH][Game.GRID_HEIGHT];
     static HashMap<String, Integer> mapIndexConnections = new HashMap<String, Integer>();
 
 
@@ -25,21 +24,18 @@ public class Fog {
 		Fog.mapIndexConnections.put("assets/maps/dungeon_map_2", 1);
 		Fog.mapIndexConnections.put("assets/maps/newmap", 2);
 		Fog.mapIndexConnections.put("assets/maps/dungeon_map_3", 3);
+		Fog.mapIndexConnections.put("assets/maps/hub", 4);
+		Fog.mapIndexConnections.put("assets/maps/001", 5);
+		Fog.mapIndexConnections.put("assets/maps/002", 6);
+		Fog.mapIndexConnections.put("assets/maps/003", 7);
+		Fog.mapIndexConnections.put("assets/maps/004", 8);
 	}
 
 	public static void loadFog(String filename) {
 
 
-		
-      fowHistory[mapIndexConnections.get(Game.currentMapFilename)] = fogOfWar;
-
-      // set the fog of war for the destination
-      if (mapIndexConnections.containsKey(filename)) {
-        fogOfWar = fowHistory[mapIndexConnections.get(filename)]; 
-      } else {
-        fogOfWar = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
-        System.out.println("warning: setup a map index connection for "+filename+" in the fog of war hashmap");
-      }
+      fogOfWar = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
+      
       
 	}
 

@@ -59,6 +59,17 @@ public class GaFrHash<K,V> {
 		return keys.size();
 	}
 
+	// Given a value, get the key.
+	public K getKey(V value) {
+		
+	if (values.indexOf(value) != -1) {
+		return keys.get(values.indexOf(value));
+	} else {
+		System.out.println("Error: value \""+value+"\" not found in GaFrHash");
+		return null;
+	}
+	}
+
 	public void print() {
 		for (int i = 0; i < this.size(); i++) {
 			System.out.println(keys.get(i)+" : "+values.get(i));

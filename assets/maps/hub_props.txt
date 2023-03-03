@@ -1,0 +1,14 @@
+GLYPH_GLOWIER,5,1,{examine:you've never seen a symbol like this before./it fills you with unease.}
+POINT_OF_INTEREST,3,2,{examine:this door leads to the very first level.}
+DOOR_OPEN,2,2,{destination:001}
+POINT_OF_INTEREST,3,4,{examine:this door leads to level 002}
+DOOR_OPEN,2,4,{destination:002}
+POINT_OF_INTEREST,3,6,{}
+DOOR_OPEN,2,6,{}
+POINT_OF_INTEREST,7,6,{}
+DOOR_OPEN,8,6,{}
+POINT_OF_INTEREST,7,4,{}
+DOOR_OPEN,8,4,{}
+POINT_OF_INTEREST,7,2,{}
+DOOR_OPEN,8,2,{}
+NOTHING,5,5,{spawn:true}

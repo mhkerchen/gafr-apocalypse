@@ -26,6 +26,7 @@ public class Game extends GFGame
     static final int GRID_WIDTH = 24;
     static final int TILE_SIZE = 32;
     static final int TEXTURES_QTY = 128;
+    static final int EDGE_BUFFER = 24;
 
     // Edit mode variables
     static boolean editMode = false;
@@ -37,11 +38,9 @@ public class Game extends GFGame
     static int[] editModeTiles;
 
     public static int totalMaps = 10; // used for fog of war
-    public static int EDGE_BUFFER = 16;
 
     // static variables and grids
     public static int grid[][] = new int[GRID_WIDTH][GRID_HEIGHT];
-    public static int[][] propsMap; // used for checking collisions. Allows accessing ID by position.
     
     // for fog of war saving and loading
     public static String currentMapFilename = "assets/maps/dungeon_map";
@@ -70,13 +69,8 @@ public class Game extends GFGame
     Sfx.BGM.play();
 
     Player.isPressed = "none";
+    indexTextures("assets/image_indexes/tiles", tileImages);
 
-    try { // initializes textures and tileDict
-      indexTextures("assets/image_indexes/tiles", tileImages, TEXTURES_QTY);
-    } catch (Exception e ) {
-      System.out.println("Failure to load tile textures :(");
-      errorScreen();
-    }
 
     Player.initPlayers();
 
@@ -91,7 +85,7 @@ public class Game extends GFGame
     Prop.initializeProps();
     // Loads the level.
     try {
-      loadLevel("assets/maps/dungeon_map");
+      loadLevel("assets/maps/hub");
     } catch (Exception e) {
       System.out.println("Level load failed.");
       errorScreen();
@@ -100,6 +94,7 @@ public class Game extends GFGame
     TextBox.initFonts();
       
     TextBox.dialogueBox = new TextBox(0, 400, 800-16, 100-16, TextBox.englishFont);
+
   }
 
 
@@ -107,7 +102,7 @@ public class Game extends GFGame
   static int[] getValidTiles(GaFrHash<Integer, GFStamp> tileArray) {
 
     ArrayList<Integer> validIndexes = new ArrayList<Integer>();
-    for (int i = 0; i < tileArray.size(); i++) {
+    for (int i = 0; i < TEXTURES_QTY; i++) {
       if (tileArray.containsKey(i)) {
         validIndexes.add(i);
       }
@@ -121,11 +116,18 @@ public class Game extends GFGame
   }
 
   
-  static void indexTextures(String tile_filename, GFStamp[][] imageMatrix, int destArraySize) throws FileNotFoundException {
-
-    String[] tilesArray = Readers.splitFileNewline(GFU.loadTextFile(tile_filename+".txt"));
+  static void indexTextures(String tile_filename, GFStamp[][] imageMatrix) {
+    String[] tilesArray;
+    try {
+      tilesArray = Readers.splitFileNewline(GFU.loadTextFile(tile_filename+".txt"));
+    } catch (Exception e ){
+      System.out.println("Error reading file "+tile_filename+".txt into textures.");
+      errorScreen();
+      tilesArray = new String[2];
+    }
+    
     String[] currentLineSplit;
-	  int[] arr;
+	  int[] arrs;
     String currentLine;
 
     for (int i =0; i < tilesArray.length; i++) {
@@ -133,11 +135,14 @@ public class Game extends GFGame
 
       if (Readers.lineValid(currentLine)) {
         currentLineSplit = Readers.splitLineStr(currentLine);
-		    arr = Readers.strToInt(currentLineSplit,1);
-        
-        textures.put(arr[1], imageMatrix[arr[2]][arr[3]]);
-        System.out.println(currentLineSplit[0]);
-        tileDict.put(currentLineSplit[0].trim(), arr[1]);
+        if (currentLineSplit.length == 4) {
+          arrs = Readers.strToInt(currentLineSplit,1);
+          
+          textures.put(arrs[1], imageMatrix[arrs[2]][arrs[3]]);
+          tileDict.put(currentLineSplit[0].trim(), arrs[1]);
+        } else {
+          System.out.println("Error: wrong number of arguments for line "+currentLine+" ("+currentLineSplit.length+" given, 4 required)");
+        }
       }
     }
 
@@ -191,7 +196,7 @@ public class Game extends GFGame
     // Splits the map string into an array of rows
     // Each row is a string that is GRID_WIDTH long.
     String mapgridArray[] = new String[GRID_HEIGHT];
-    mapgridArray = mapString.split("\n");
+    mapgridArray = mapString.split("\n"); // TODO change to reader
 
     // Will contain a bunch of entries of numbers as strings
     String lineArray[] = new String[GRID_WIDTH];
@@ -247,10 +252,12 @@ public class Game extends GFGame
       // find the Spawn entry (usually but not always the first object) and spawn there
       Prop currentProp = Prop.getProp(0);
       int propIndex = 0;
-      // TODO: error if there's no such prop
       while ((!currentProp.metadata.containsKey("spawn"))) {
         propIndex++;
         currentProp = Prop.getProp(propIndex);
+      }
+      if (!currentProp.metadata.containsKey("spawn") ) {
+        System.out.println("Error: no spawn given for file "+filename+".");
       }
       Player.setPlayer("human");
       Player.cur.setCharX(currentProp.getX());
@@ -275,15 +282,13 @@ public class Game extends GFGame
   public static void loadLevelInternal(String filename) throws FileNotFoundException {
       
       Fog.loadFog(filename);
-    
-      propsMap = new int[GRID_WIDTH][GRID_HEIGHT];
       
       currentMapFilename = filename;
 
       // load in maps
       System.out.println("Load ingame map");
       grid = readInGameMap(GFU.loadTextFile(filename+".txt"));
-      System.out.println("Load prop map");
+      System.out.println("Load props");
       Prop.props = Prop.readProps(GFU.loadTextFile(filename+"_props.txt"));
   }
 
@@ -303,7 +308,7 @@ public class Game extends GFGame
       for (int x=0; x < GRID_WIDTH-1; x++) {
         tilesString = tilesString + grid[x][y] + ",";
       }
-      tilesString = tilesString + "\n";
+      tilesString = tilesString.substring(0, tilesString.length()-2) + "\n";
     }
     return tilesString;
   }
@@ -346,7 +351,7 @@ public class Game extends GFGame
         // E is for Edit! 
          if (editMode) {
           System.out.println("Props:");
-          System.out.println(editModeProps);
+          System.out.println(editModeProps+"\n10,3,3,{spawn:true}");
           System.out.println("Tiles:");
           System.out.println(tilesToString());
           System.out.println("Exiting edit mode.");
@@ -399,7 +404,6 @@ public class Game extends GFGame
           } else {
             editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}";
             System.out.println(editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}");
-            propsMap[Player.cur.x][Player.cur.y] = editModePlaceIcon;
             editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y));
           }
         } else {
@@ -494,7 +498,6 @@ public class Game extends GFGame
     } else {
       editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}";
       System.out.println(editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}");
-      propsMap[Player.cur.x][Player.cur.y] = editModePlaceIcon;
       editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y));
     }
   }
@@ -559,7 +562,7 @@ public class Game extends GFGame
 
     // in edit mode, there is an additional white outline for the cursor
     if (editMode) {
-      player = textures.get(9);
+      player = textures.get(translate("EDITMODE_CURSOR"));
       player.moveTo(EDGE_BUFFER+Player.human.x*TILE_SIZE, EDGE_BUFFER+Player.human.y*TILE_SIZE);
       player.stamp();
     }
@@ -592,6 +595,13 @@ public class Game extends GFGame
     }
   }
 
+  public static void drawUI() {
+
+    if (editMode) {
+      TextBox.englishFont.draw(128+16,20, "selected: "+tileDict.getKey(editModePlaceIcon).toLowerCase());
+    }
+  }
+
   
   static void drawText(){
     TextBox.dialogueBox.drawBox();
@@ -621,6 +631,7 @@ public class Game extends GFGame
       drawProps();
       drawPlayer();
       drawText();
+      drawUI();
       if (frameCount%2 == 0) {
         TextBox.dialogueBox.displayOneCharacter();
       }

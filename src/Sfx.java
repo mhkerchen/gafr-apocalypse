@@ -12,5 +12,6 @@ public class Sfx {
     public static GFSound PICKUP = new GFSound("assets/sounds/pickup2.mp3");
     public static GFSound KEYCARD_FAILURE = new GFSound("assets/sounds/keycard_no.wav");
     public static GFSound KEYCARD_SUCCESS = new GFSound("assets/sounds/keycard_yes.wav");
+    public static GFSound NEXT_LEVEL = new GFSound("assets/sounds/change_level.mp3");
 
 }

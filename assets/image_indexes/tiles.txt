@@ -3,7 +3,6 @@
 BLACK,               0, 0, 0
 FLOOR,               1, 5, 1
 WALL,                2, 4, 3
-DOOR,                3, 0, 5
 PLAYER,              4, 6, 6
 CHEST,               5, 2, 6   
 POINT_OF_INTEREST,   6, 12, 7
@@ -11,11 +10,15 @@ PORTAL,              7, 11, 9
 CHEST_OPEN,          8, 2, 7
 EDITMODE_CURSOR,     9, 3, 18
 //
-   
+
 NOTHING,             10, 1, 0 
 WALL_PASSABLE,       11, 4, 3
 WALL2,               12, 8, 2
 WALL2_PASSABLE,      13, 8, 2
+WALLDOOR_VER_CLOSED, 14, 8, 5 
+WALLDOOR_VER_OPEN,	 15, 9, 5 
+WALLDOOR_HOR_CLOSED, 16, 10, 5 
+WALLDOOR_HOR_OPEN,	 17, 11, 5 
 //
 DOOR_OPEN,           20, 0, 5 
 DOOR_CLOSED,         21, 1, 5 
@@ -69,5 +72,14 @@ NOT_FOUND, 			 69, 3, 3
 GLYPH_ENGRAVED,      70, 1, 6 
 GLYPH_GLOW,          71, 0, 7
 GLYPH_GLOWIER,       72, 1, 7
+
+POWER_CORE_ITEM,	 75, 15, 13
+GREEN_POWER_CORE_ON, 76, 16, 10
+BLUE_POWER_CORE_ON,  77, 16, 11
+RED_POWER_CORE_ON,   78, 16, 12
+
+GREEN_POWER_CORE_OFF, 79, 17, 10
+BLUE_POWER_CORE_OFF,  80, 17, 11
+RED_POWER_CORE_OFF,   81, 17, 12
 
 ANIMATION, 			 100, 1, 0

@@ -29,7 +29,6 @@ public class Prop {
   
   public Prop(int inid, int inicon, int inx, int iny) {
       id = inid; 
-      System.out.println("Prop ID: "+inid);
       icon = inicon;
       x = inx;
       y = iny;
@@ -100,6 +99,7 @@ public class Prop {
 
 
     // Processes a piece of metadata. 
+    // Also required for things such as 
     public void setMetadata(String metadata_raw) {
       
       // cut off the {} and remove any whitespace
@@ -108,7 +108,6 @@ public class Prop {
       } else {
         metadata_raw = metadata_raw.trim();
       }
-      System.out.println(metadata_raw);
       // no metadata to be added
       if (metadata_raw == null || metadata_raw.equals("")) {
         if (metadata.size() == 0) {
@@ -127,8 +126,9 @@ public class Prop {
         }
         
         this.hasMetadata = true;
-        this.checkMetadataTraits();
       }
+
+      this.checkMetadataTraits();
     }
 
     public void checkMetadataTraits() {
@@ -173,44 +173,44 @@ public class Prop {
 
       if (args.length > 3) {
         
-        if (Game.tileDict.containsKey(args[0])) { 
-
-          // standard id given
+        try {
           newProps[i] = new Prop(
             i,
-            Game.translate(args[0]),
+            Game.translate(Integer.parseInt(args[0])),
             Integer.parseInt(args[1]),
             Integer.parseInt(args[2])
             );
             newProps[i].setMetadata(args[3]);
+        } catch (Exception e) {
+          if (Game.tileDict.containsKey(args[0])) { 
 
-        } else {
-          // preset id given
-            System.out.println("Custom prop");
-            newProps[i] = customProp(i, args);
+            // standard id given
+            newProps[i] = new Prop(
+              i,
+              Game.translate(args[0]),
+              Integer.parseInt(args[1]),
+              Integer.parseInt(args[2])
+              );
+              newProps[i].setMetadata(args[3]);
+
+          } else {
+            // preset id given
+              newProps[i] = customProp(i, args);
+
+          }
 
         }
 
         // stores the prop's ID in the props map
-        Game.propsMap[newProps[i].getX()][newProps[i].getY()] = i;
         
       } else {
         System.out.println("Warning: Line \""+propsArray[i]+"\" has too few arguments.");
       }
     }
 
+    System.out.println("Props loaded.");
     return newProps;
   }
-
-
-  public static void clearPropsList() {
-    for (int y = 0; y < Game.GRID_HEIGHT; y++) {
-      for (int x = 0; x < Game.GRID_WIDTH; x++) {
-        Game.propsMap[x][y] = -1;
-      }
-    }
-  }
-
   // Creates a prop with preset metadata.
   // Check defaultprops.txt for full list.
   public static Prop customProp(int i, String[] lineParser) {
@@ -285,7 +285,7 @@ public class Prop {
 
   // Called every time the player shares space with the object.
   public void tryOverlapAction() {
-    System.out.println("Overlapping "+this.id);
+    //System.out.println("Overlapping "+this.id);
     if ( Game.editMode || (!this.exists) ) {
       return;
     }
@@ -338,7 +338,7 @@ public class Prop {
   }
 
   public boolean doUnlock() {
-      if ( !Inventory.inventoryTake(metadata.get("locked")) ) {
+      if (!(metadata.get("locked").equals("none")) && !Inventory.inventoryTake(metadata.get("locked")) ) {
         // you don't have it, so no door for you
         Sfx.KEYCARD_FAILURE.play();
         TextBox.dialogueBox.addMultipleLines("locked.");

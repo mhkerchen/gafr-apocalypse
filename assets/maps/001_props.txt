@@ -1,0 +1,4 @@
+POINT_OF_INTEREST,5,4,{examine:to move, use wasd or the arrow keys./to interact, use enter or the spacebar.}
+DOOR_OPEN,17,5,{destination:002}
+GLYPH_ENGRAVED,11,4,{examine:some sort of symbol.}
+NOTHING,5,5,{spawn:true}

@@ -69,6 +69,7 @@ public class Readers{
 		Does not care about whitespace, but trims each argument. 
 		If there is metadata at the end of the string,
 		it will be returned as a single entry with {}.
+		Removes any ending commas.
 		
 	*/
 	public static String[] splitLineStr(String text) {
@@ -100,6 +101,8 @@ public class Readers{
 
 	/*  Parses an array of Strings to integers, and returns that array.
 		Optionally takes a starting position.
+
+		3/2/2023: I DO NOT TRUST YOU
 	*/
 	public static int[] strToInt(String[] arr, int starti) {
 		
@@ -108,7 +111,7 @@ public class Readers{
 			try {
 				arrint[i] = Integer.parseInt(arr[i]);
 			} catch (Exception e) {
-				System.out.println("Cannot parse \""+arr[i]+"\" to string");
+				System.out.println("Cannot parse \""+arr[i]+"\" to int");
 			}
 		}
 		return arrint;

@@ -1,0 +1,7 @@
+DOOR_OPEN,8,13,{}
+POINT_OF_INTEREST,7,4,{examine:some obstacles require keys or other items.}
+NOTHING,3,3,{spawn:true}
+GREEN_KEYCARD,7,2,{pickup_item:green_keycard}
+GREEN_DOOR_CLOSED,8,12,{destination:001;locked:green_keycard}
+DOOR_CLOSED,3,5,{locked:none}
+DOOR_CLOSED,7,5,{locked:none}

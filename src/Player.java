@@ -41,9 +41,6 @@ public class Player {
 
   public boolean show = false;
 
-  //public GaFrHash<String, GFStamp> characterTextures = new GaFrHash<String, GFStamp>();
-  // VERY IMPORTANT: this is NOT static!
-  // The robot and the player both have their own copy of this.
 
 	public Player(String type, String new_prefix) {
 		//createImgs(new GFTexture(texture_filename));
@@ -64,9 +61,7 @@ public class Player {
   public static void initPlayers() {
     
     human = new Player("player", "HUMAN");
-    Game.tileDict.print();
     robot = new Player("robot", "ROBOT");
-    Game.tileDict.print();
     cur = human;
 
 
@@ -77,7 +72,6 @@ public class Player {
   // They are tagged with the prefix (either HUMAN_ or ROBOT_).
   void loadTextures (String filename) {
 
-    System.out.println("Current prefix is: "+this.prefix);
     
     // split data into lines
     String[] textureLines;
