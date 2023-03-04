@@ -1,4 +1,5 @@
 import GaFr.GFSound;
+import java.util.*;
 
 public class Sfx {
     public static int bgmDuration = 5*60 + 6; // 5 minutes 6 seconds
@@ -14,4 +15,8 @@ public class Sfx {
     public static GFSound KEYCARD_SUCCESS = new GFSound("assets/sounds/keycard_yes.wav");
     public static GFSound NEXT_LEVEL = new GFSound("assets/sounds/change_level.mp3");
 
+    public static void playStep() {
+        // eventually it'll cycle through step sfx, but this is good
+        STEP.play();
+    }
 }

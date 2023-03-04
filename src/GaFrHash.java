@@ -70,6 +70,11 @@ public class GaFrHash<K,V> {
 	}
 	}
 
+	// Returns an array of keys
+	public ArrayList<K> getKeyArray() {
+		return this.keys;
+	}
+
 	public void print() {
 		for (int i = 0; i < this.size(); i++) {
 			System.out.println(keys.get(i)+" : "+values.get(i));

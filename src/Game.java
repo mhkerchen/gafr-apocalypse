@@ -31,19 +31,14 @@ public class Game extends GFGame
     // Edit mode variables
     static boolean editMode = false;
     static String editModePlaceType = "tile"; // can be "tile", "prop".
-    static int editModePlaceIcon = 1; // can be any valid index in textures.
-    static int editModePlaceIconIndex = 0; // so sorry. i promise five words is the max for my variable names
+    static int editModePlaceIcon = 1; // can be any valid ID in textures.
+    static int editModePlaceIconIndex = 0; // the index of the ID in editModeTiles
     static String editModeProps = "";
     static ArrayList<Prop> editModeGhostProps = new ArrayList<Prop>();
-    static int[] editModeTiles;
-
-    public static int totalMaps = 10; // used for fog of war
-
+    static int[] editModeTiles; // all valid tiles, as cycled through in editmode
     // static variables and grids
     public static int grid[][] = new int[GRID_WIDTH][GRID_HEIGHT];
     
-    // for fog of war saving and loading
-    public static String currentMapFilename = "assets/maps/dungeon_map";
 
     // error screen
     static boolean beRightBack = false;
@@ -53,9 +48,7 @@ public class Game extends GFGame
     // Load graphics
 
     static GFStamp[][] tileImages = new GFTexture("assets/images/tileset.png").splitIntoTilesBySize2D(32,32);
-    //static GFStamp[] textures;// = new GFStamp[TEXTURES_QTY];
     static GaFrHash<Integer, GFStamp> textures = new GaFrHash<Integer, GFStamp>();
-
     static GaFrHash<String, Integer> tileDict = new GaFrHash<String, Integer>();
 
 
@@ -65,87 +58,70 @@ public class Game extends GFGame
       s.centerPin();
     }
     
-    Fog.initFog();
+    indexTextures("assets/image_indexes/tiles", tileImages); // initializes tileDict
+
     Sfx.BGM.play();
-
-    Player.isPressed = "none";
-    indexTextures("assets/image_indexes/tiles", tileImages);
-
 
     Player.initPlayers();
 
-    try { // must run after tileDict is initialized
-      Animation.initializeAnimations();
-    } catch (Exception e) {
-      e.printStackTrace();
+    Animation.initializeAnimations(); // depends on tileDict being initialized
+    
+    getValidTiles(textures);
+
+    Prop.initializeProps();
+    
+    loadLevel("assets/maps/hub");
+
+    TextBox.initText();
+
+  }
+
+
+  // Gets a list of all valid tiles for edit mode.
+  static void getValidTiles(GaFrHash<Integer, GFStamp> tileArray) {
+
+    ArrayList<Integer> keyArr = tileArray.getKeyArray();
+    editModeTiles = new int[keyArr.size()];
+    for (int i = 0; i < keyArr.size(); i++) {
+      editModeTiles[i] = keyArr.get(i);
     }
     
-    editModeTiles = getValidTiles(textures);
-    Prop.readImpassableProps();
-    Prop.initializeProps();
-    // Loads the level.
-    try {
-      loadLevel("assets/maps/hub");
-    } catch (Exception e) {
-      System.out.println("Level load failed.");
-      errorScreen();
-    }
-
-    TextBox.initFonts();
-      
-    TextBox.dialogueBox = new TextBox(0, 400, 800-16, 100-16, TextBox.englishFont);
-
   }
 
-
-
-  static int[] getValidTiles(GaFrHash<Integer, GFStamp> tileArray) {
-
-    ArrayList<Integer> validIndexes = new ArrayList<Integer>();
-    for (int i = 0; i < TEXTURES_QTY; i++) {
-      if (tileArray.containsKey(i)) {
-        validIndexes.add(i);
-      }
-    }
-    // there is a better way to do this but I Will Not Learn
-    int[] returnArray = new int[validIndexes.size()];
-    for (int i = 0; i < validIndexes.size(); i++) {
-      returnArray[i] = validIndexes.get(i);
-    }
-    return returnArray;
-  }
-
-  
+  /* 
+    Reads textures from tiles.txt into textures and tileDict. 
+  */
   static void indexTextures(String tile_filename, GFStamp[][] imageMatrix) {
     String[] tilesArray;
     try {
-      tilesArray = Readers.splitFileNewline(GFU.loadTextFile(tile_filename+".txt"));
+      tilesArray = Reader.splitFileNewline(GFU.loadTextFile(tile_filename+".txt"));
     } catch (Exception e ){
       System.out.println("Error reading file "+tile_filename+".txt into textures.");
       errorScreen();
-      tilesArray = new String[2];
+      tilesArray = new String[0];
     }
     
     String[] currentLineSplit;
 	  int[] arrs;
-    String currentLine;
 
     for (int i =0; i < tilesArray.length; i++) {
-      currentLine = tilesArray[i].trim();
+      currentLineSplit = Reader.splitLineStr(tilesArray[i].trim());
 
-      if (Readers.lineValid(currentLine)) {
-        currentLineSplit = Readers.splitLineStr(currentLine);
-        if (currentLineSplit.length == 4) {
-          arrs = Readers.strToInt(currentLineSplit,1);
-          
-          textures.put(arrs[1], imageMatrix[arrs[2]][arrs[3]]);
-          tileDict.put(currentLineSplit[0].trim(), arrs[1]);
-        } else {
-          System.out.println("Error: wrong number of arguments for line "+currentLine+" ("+currentLineSplit.length+" given, 4 required)");
-        }
+      if (Reader.assertArgs(currentLineSplit, 4)) {
+        
+        arrs = Reader.strToInt(currentLineSplit,1);
+        addTile(arrs[1], currentLineSplit[0], imageMatrix[arrs[2]][arrs[3]]);
+
       }
+
     }
 
+  }
+
+
+  static void addTile(int id, String name, GFStamp stamp) {
+    textures.put(id, stamp);
+    tileDict.put(name, id);
   }
 	
   // Translates a String tilename into an integer value.
@@ -159,7 +135,7 @@ public class Game extends GFGame
       System.out.println("Error: Could not find \""+tile+"\" in tileDict.");
     }
     
-    return 0;
+    return 69; // nice
   }
   static int translate(int tile) {
     return tile;
@@ -173,15 +149,16 @@ public class Game extends GFGame
     return textures.get(tile);
   }
 
-  static void addTile(int id, String name, GFStamp stamp) {
-
-    textures.put(id, stamp);
-    tileDict.put(name, id);
-  }
 
   // Given a text file string containing the map layout, constructs the tiles. (Does not include interactibles.)
-  static int[][] readInGameMap(String mapString) {
-    
+  static int[][] readInGameMap(String filename) {
+    String mapString = "";
+    try {
+      mapString = GFU.loadTextFile(filename);
+    } catch (Exception e ) {
+      System.out.println("Could not load map "+filename);
+    }
+
     // Obtain the width and height of the map.
     int mapHeight = mapString.split("\n").length;
     int mapWidth = mapString.split("\n")[0].split(",").length; // Not configured for nonrectangular maps. Do not make.
@@ -196,7 +173,7 @@ public class Game extends GFGame
     // Splits the map string into an array of rows
     // Each row is a string that is GRID_WIDTH long.
     String mapgridArray[] = new String[GRID_HEIGHT];
-    mapgridArray = mapString.split("\n"); // TODO change to reader
+    mapgridArray = Reader.splitFileNewline(mapString); // TODO change to reader
 
     // Will contain a bunch of entries of numbers as strings
     String lineArray[] = new String[GRID_WIDTH];
@@ -204,11 +181,11 @@ public class Game extends GFGame
     // Add each map value into the map grid, parsing them into integers from strings.
     for (int y = 0; y < mapHeight; y++) {
 
-      lineArray = mapgridArray[y].split(",");
+      lineArray = Reader.splitLineStr(mapgridArray[y]);
 
       for (int x = 0; x < mapWidth; x++) {
 
-        mapGrid[x][y] = Integer.parseInt(lineArray[x].trim()); // whitespace issue wasted 2 hours :(
+        mapGrid[x][y] = Integer.parseInt(lineArray[x]); // whitespace issue wasted 2 hours :(
         
       }
     }
@@ -221,7 +198,7 @@ public class Game extends GFGame
     if (editMode == true) {  // you can pass through everything in edit mode
       return true;
     }
-    else if  ( (tile == tileDict.get("WALL")) || (tile == tileDict.get("WALL2")))  {  // the list right now is very short.
+    else if  ( Prop.impassableProps.contains(tile))  {
       return false;
     }
     return true;
@@ -245,55 +222,63 @@ public class Game extends GFGame
 
 
   // Loads a new level, looking for a spawn entry.
-  public static void loadLevel(String filename) throws FileNotFoundException {
+  public static void loadLevel(String filename) {
       
       loadLevelInternal(filename);
 
       // find the Spawn entry (usually but not always the first object) and spawn there
       Prop currentProp = Prop.getProp(0);
       int propIndex = 0;
+
       while ((!currentProp.metadata.containsKey("spawn"))) {
         propIndex++;
         currentProp = Prop.getProp(propIndex);
       }
-      if (!currentProp.metadata.containsKey("spawn") ) {
-        System.out.println("Error: no spawn given for file "+filename+".");
+
+      if (currentProp.metadata.containsKey("spawn") ) {
+        spawnPlayer(currentProp.getX(), currentProp.getY());
+
+      } else {
+        System.out.println("Warning/error: no spawn given for file "+filename+".");
+        spawnPlayer(0,0);
       }
-      Player.setPlayer("human");
-      Player.cur.setCharX(currentProp.getX());
-      Player.cur.setCharY(currentProp.getY());
-      Fog.clearFog(Player.cur.x, Player.cur.y); // reveal the immediate area, for ~vibes~
 
   }
 
-  public static void loadLevel(String filename, int spawnX, int spawnY) throws FileNotFoundException {
+  public static void loadLevel(String filename, int spawnX, int spawnY) {
 
     loadLevelInternal(filename);
+    spawnPlayer(spawnX, spawnY);
+
+  }
+
+  // Spawns the player in.
+  public static void spawnPlayer(int x, int y) {
 
     Player.setPlayer("human");
-    Player.cur.setCharX(spawnX);
-    Player.cur.setCharY(spawnY);
+    Player.cur.setCharX(x);
+    Player.cur.setCharY(y);
     Fog.clearFog(Player.cur.x, Player.cur.y);
 
   }
 
   // Does the actual "loading of tiles" actions. 
   // Loads, in order: fog, tiles, props.
-  public static void loadLevelInternal(String filename) throws FileNotFoundException {
+  public static void loadLevelInternal(String filename) {
       
       Fog.loadFog(filename);
       
-      currentMapFilename = filename;
-
       // load in maps
       System.out.println("Load ingame map");
-      grid = readInGameMap(GFU.loadTextFile(filename+".txt"));
+      grid = readInGameMap(filename+".txt");
       System.out.println("Load props");
-      Prop.props = Prop.readProps(GFU.loadTextFile(filename+"_props.txt"));
+      Prop.readProps(filename+"_props.txt");
+
   }
 
 
 
+  // Checks whether a given tile is valid
   public static boolean isValidTile(int x, int y) {
       if ( (x >= 0) && (y >= 0) && (x < GRID_WIDTH) && (y < GRID_HEIGHT) ) {
         return true;
@@ -350,22 +335,18 @@ public class Game extends GFGame
       case GFKey.E: {
         // E is for Edit! 
          if (editMode) {
-          System.out.println("Props:");
-          System.out.println(editModeProps+"\n10,3,3,{spawn:true}");
-          System.out.println("Tiles:");
-          System.out.println(tilesToString());
-          System.out.println("Exiting edit mode.");
-          
+          System.out.println("Props:"+"\n\n"+editModeProps+"\nNOTHING,3,3,{spawn:true}"+"\n\n"+"Tiles:"+"\n\n"+tilesToString()+"\n\n"+"Exiting edit mode.");
           Gfx.clearColor(Gfx.Color.BLACK);
+          editModeGhostProps.clear();
           editMode = false;
 
          } else {
           System.out.println("Entering edit mode.\n\nX: swap between tile [turquoise] and prop [fuschia] mode. \nN: clear map. \nEnter: place a tile or prop.\n[]: change tile.");
           
-          editModeGhostProps.clear();
           Gfx.clearColor(0xffbd9b20);
           editModePlaceType = "tile";
           editMode = true;
+
          }
         break;
       }  
@@ -373,14 +354,9 @@ public class Game extends GFGame
       case GFKey.N: {
         // Clears the level and makes a new blank one for editing, IF in edit mode.
         if (editMode) {
-          try {
-            loadLevel("assets/maps/newmap", 1, 1);
-            editModeProps = "";
-            editModeGhostProps.clear();
-          } catch (Exception e) {
-            System.out.println("Failed to clear map.");
-          }
-          
+          loadLevel("assets/maps/newmap", 1, 1);
+          editModeProps = "";
+          editModeGhostProps.clear();
           
         }
         break;
@@ -388,37 +364,31 @@ public class Game extends GFGame
 
       case GFKey.K: {
         if (Player.cur == Player.human) {
-          Player.cur = Player.robot;
+          Player.setPlayer("robot");
         }
         else {
-          Player.cur = Player.human;
+          Player.setPlayer("human");
         }
         break;
       }
 
       case GFKey.Space:
       case GFKey.Enter: {
+        
         if (editMode) {
-          if (editModePlaceType.equals("tile") ) {
-            grid[Player.cur.x][Player.cur.y] = editModePlaceIcon;
-          } else {
-            editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}";
-            System.out.println(editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}");
-            editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y));
-          }
+          // place an object
+          editModePlaceTile();
         } else {
-          // call a touch action
+          
           if (!TextBox.isDialogue) {
-            Player.cur.touchAction();
+            Player.cur.touchAction(); // call a touch action
           } 
           
         }
 
         TextBox.dialogueBox.onInteract(); 
         // placement is important. if this statement is placed
-        // before the freeze check, examine quotes become impassible.
-        
-
+        // before the freeze check, examine quotes become impassable.
         break;
       }
 
@@ -474,7 +444,6 @@ public class Game extends GFGame
       case GFKey.ArrowUp: {
         if (Player.isPressed.equals("keyUp")) {
           Player.isPressed = "none";
-          
           Player.keyTimeout = Player.INITIAL_TIMEOUT;
         }
         break;
@@ -492,23 +461,24 @@ public class Game extends GFGame
     }
   }
 
+  // Places a tile OR prop.
   public static void editModePlaceTile() {
     if (editModePlaceType.equals("tile") ) {
       grid[Player.cur.x][Player.cur.y] = editModePlaceIcon;
     } else {
-      editModeProps = editModeProps + "\n"+ editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}";
-      System.out.println(editModePlaceIcon + ","+ Player.cur.x +","+ Player.cur.y +",{}");
+      editModeProps = editModeProps + "\n"+ tileDict.getKey(editModePlaceIcon) + ","+ Player.cur.x +","+ Player.cur.y +",{}";
       editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y));
     }
   }
 
+  // Cycle through the icons. 
   public static void editModeChangeIcon(int delta) {
     
         editModePlaceIconIndex += delta;
         if (editModePlaceIconIndex >= editModeTiles.length) {
           editModePlaceIconIndex = 0;
         }
-        if (editModePlaceIconIndex < 0) {
+        else if (editModePlaceIconIndex < 0) {
           editModePlaceIconIndex = editModeTiles.length-1;
         }
         editModePlaceIcon = editModeTiles[editModePlaceIconIndex];
@@ -519,13 +489,14 @@ public class Game extends GFGame
 
   // DRAW FUNCTIONS
 
-  void drawGrid()
+  static void drawGrid()
   {
+    GFStamp s;
     for (int y = 0; y < GRID_HEIGHT; y++) {
       for (int x = 0; x < GRID_WIDTH; x++) {
         if ((editMode) || (Fog.fogOfWar[x][y] == 1)) {
-          GFStamp s = textures.get(grid[x][y]);
-          s.moveTo(EDGE_BUFFER+x*TILE_SIZE, EDGE_BUFFER+y*TILE_SIZE);
+          s = textures.get(grid[x][y]);
+          s.moveTo(EDGE_BUFFER + x * TILE_SIZE, EDGE_BUFFER + y * TILE_SIZE);
           s.stamp();
         }
       }
@@ -533,49 +504,45 @@ public class Game extends GFGame
   }
 
   // Draws all ghost props. 
-  void drawGhostProps() {
+  static void drawGhostProps() {
     if (editMode) {
-      for (int i = 0; i < editModeGhostProps.toArray().length; i++) {
-          GFStamp s = textures.get(editModeGhostProps.get(i).getIcon());
-          s.moveTo(EDGE_BUFFER+editModeGhostProps.get(i).getX()*TILE_SIZE, EDGE_BUFFER+editModeGhostProps.get(i).getY()*TILE_SIZE);
-          s.stamp();
-          
+      GFStamp s;
+      for (int i = 0; i < editModeGhostProps.size(); i++) {
+        s = textures.get(editModeGhostProps.get(i).getImg());
+        s.moveTo(EDGE_BUFFER+editModeGhostProps.get(i).getX()*TILE_SIZE, EDGE_BUFFER+editModeGhostProps.get(i).getY()*TILE_SIZE);
+        s.stamp();
       }
     }
   }
 
 
-  void drawPlayer() {
+  static void drawPlayer() {
 
-    // draw the human first
-
-    // determine the proper sprite for the player (animated or the currently selected block in edit mode)
     GFStamp player;
-    if (editMode) {
-      player = textures.get(editModePlaceIcon);
-    } else {
-      player = Player.human.getImg();
-    }
     
-    player.moveTo(EDGE_BUFFER+Player.human.x*TILE_SIZE, EDGE_BUFFER+Player.human.y*TILE_SIZE);
-    player.stamp();
-
-    // in edit mode, there is an additional white outline for the cursor
     if (editMode) {
+      // draw the selected tile
+      player = textures.get(editModePlaceIcon);
+      player.moveTo(EDGE_BUFFER+Player.human.x*TILE_SIZE, EDGE_BUFFER+Player.human.y*TILE_SIZE);
+      player.stamp();
+
+      // draw the white outline
       player = textures.get(translate("EDITMODE_CURSOR"));
       player.moveTo(EDGE_BUFFER+Player.human.x*TILE_SIZE, EDGE_BUFFER+Player.human.y*TILE_SIZE);
       player.stamp();
-    }
 
-    // then draw the robot
-
-    if (Player.robot.show) {
-      player = Player.robot.getImg();
-    
-      player.moveTo(EDGE_BUFFER+Player.robot.x*TILE_SIZE, EDGE_BUFFER+Player.robot.y*TILE_SIZE);
+    } else {
+      // draw the human
+      player = Player.human.getImg();
+      player.moveTo(EDGE_BUFFER+Player.human.x*TILE_SIZE, EDGE_BUFFER+Player.human.y*TILE_SIZE);
       player.stamp();
-
+      if (Player.robot.show && Player.robot_unlocked) {
+        player = Player.robot.getImg();
+        player.moveTo(EDGE_BUFFER+Player.robot.x*TILE_SIZE, EDGE_BUFFER+Player.robot.y*TILE_SIZE);
+        player.stamp();
+      }
     }
+
 
   }
 
@@ -585,10 +552,11 @@ public class Game extends GFGame
     GFStamp s;
     for (int i = 0; i < Prop.props.length; i++) {
       // checks that the prop a) exists and b) should be shown
-      if ( (Prop.props[i].exists) && ( (editMode) || (Fog.fogOfWar[Prop.props[i].getX()][Prop.props[i].getY()] == 1)) ) {
+      Prop current = Prop.props[i];
+      if ( (current.exists) && ( (editMode) || (Fog.fogOfWar[current.getX()][current.getY()] == 1)) ) {
 
-        s = textures.get(Prop.props[i].getIcon());
-        s.moveTo(EDGE_BUFFER+Prop.props[i].getX()*TILE_SIZE, EDGE_BUFFER+Prop.props[i].getY()*TILE_SIZE);
+        s = textures.get(current.getImg());
+        s.moveTo(EDGE_BUFFER+current.getX()*TILE_SIZE, EDGE_BUFFER+current.getY()*TILE_SIZE);
         s.stamp();
         
       }
@@ -600,6 +568,7 @@ public class Game extends GFGame
     if (editMode) {
       TextBox.englishFont.draw(128+16,20, "selected: "+tileDict.getKey(editModePlaceIcon).toLowerCase());
     }
+    
   }
 
   

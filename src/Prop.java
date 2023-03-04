@@ -67,7 +67,7 @@ public class Prop {
   }
 
   // Retrieves the index of the Stamp that should be used. 
-  public int getIcon() {
+  public int getImg() {
     if (isAnimated) {
       return animation.getImg();
     }
@@ -142,7 +142,7 @@ public class Prop {
       }
 
       // determine whether this is an impassable block
-      this.isPassable = !(impassableProps.contains(this.getIcon()));
+      this.isPassable = !(impassableProps.contains(this.getImg()));
 
       // check for override meta
       if (this.metadata.containsKey("canpass")) {
@@ -162,14 +162,21 @@ public class Prop {
     
   // Given a text file string formatted properly (see props_example.txt), will parse it into the Props list.
   // Props are any tile which can be interacted with.
-  public static Prop[] readProps(String propsString) {
-    String[] propsArray = Readers.splitFileNewline(propsString);
+  public static void readProps(String filename) {
+    String propsString = "";
+    try {
+      propsString = GFU.loadTextFile(filename);
+    } catch (Exception e) {
+      System.out.println("Could not read props from "+filename);
+    }
+    
+    String[] propsArray = Reader.splitFileNewline(propsString);
     String[] args;
     Prop[] newProps = new Prop[propsArray.length];
     //clearPropsList();
 
     for (int i = 0; i < propsArray.length; i++) {
-      args = Readers.splitLineStr(propsArray[i]);
+      args = Reader.splitLineStr(propsArray[i]);
 
       if (args.length > 3) {
         
@@ -209,7 +216,7 @@ public class Prop {
     }
 
     System.out.println("Props loaded.");
-    return newProps;
+    props = newProps;
   }
   // Creates a prop with preset metadata.
   // Check defaultprops.txt for full list.
@@ -254,6 +261,7 @@ public class Prop {
 
   }
 
+  // Determines which props are impassable. 
   public static void readImpassableProps() {
     String[] lines = GFU.loadTextFile("assets/image_indexes/impassible_props.txt").split("\n");
     for (int i = 0; i < lines.length-1; i++) {
@@ -263,12 +271,14 @@ public class Prop {
 
   // Populates defaultProps.
   public static void initializeProps() {
-    String[] propLines = Readers.splitFileNewline(GFU.loadTextFile("assets/defaultprops.txt"));
+    
+    readImpassableProps();
+    String[] propLines = Reader.splitFileNewline(GFU.loadTextFile("assets/defaultprops.txt"));
     defaultProps = new String[propLines.length][3];
 
     for (int i = 0; i < propLines.length; i++) {
-      if (Readers.lineValid(propLines[i])) {
-        defaultProps[i] = Readers.splitLineStr(propLines[i]);
+      if (Reader.lineValid(propLines[i])) {
+        defaultProps[i] = Reader.splitLineStr(propLines[i]);
       } else {
         defaultProps[i] = new String[3]; // empty placeholder. Should be benign.
       }
@@ -356,9 +366,6 @@ public class Prop {
   public boolean doExamine() {
     TextBox.dialogueBox.addMultipleLines(this.metadata.get("examine"));
     return true;
-    /*if (this.metadata.containsKey("examine")) {
-      
-    }*/
 
   }
 

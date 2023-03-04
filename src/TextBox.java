@@ -1,40 +1,36 @@
-
 import GaFr.GFStamp;
 import GaFr.GFFont;
 import GaFr.GFTexture;
-
-
 import java.util.*;
 
 public class TextBox {
 
 
 	public GFFont font;
-	public int fontwidth = 12;
-	public int fontheight = 22;
+	public int fontwidth;
+	public int fontheight;
 
 	public int x;
 	public int y;
 	public int width;
 	public int height;
 
-	public String textBuffer; // a buffer of text that is revealed
-	private int textBufferIndex = 0;
 
 	public String displayText; // currently shown text
-	public boolean show = false;
+	public String textBuffer; // a buffer of text that is revealed
+	private int textBufferIndex = 0;
 	public int ctc_timer = 0;
+	public boolean show = false;
 
     static TextBox dialogueBox;
-    static boolean isDialogue = false;
+    static boolean isDialogue = false; // freezes input/output
 
-	// a queue containing the text to display
+	// a "queue" containing the text to display
 	private ArrayList<String> allText = new ArrayList<String>();
 
-	private static GFStamp background = new GFStamp(new GFTexture ("assets/images/textbox.png"));
-
-	public static boolean slowText = true;
-	public static int ctc_timeout = 5;
+	static GFStamp background = new GFStamp(new GFTexture ("assets/images/textbox.png"));
+	static boolean slowText = true;
+	static int ctc_timeout = 5;
     static GFFont englishFont;
 
 	
@@ -47,8 +43,11 @@ public class TextBox {
 		if (newwidth > 800 ) {
 			width = 800;
 		}
+
 		height = newheight;
 		font = newfont;
+		fontwidth = 12;
+		fontheight = 22;
 
 	}
 
@@ -59,7 +58,8 @@ public class TextBox {
 		textBufferIndex = 0;
 	}
 
-	// Primes a line of text to be displayed.
+	/* Primes a line of text to be displayed
+	   by putting it into the buffer.*/
 	public void setTextSlowDisplay(String newtext) {
 		clearText();
 		textBuffer = splitByLine(newtext);
@@ -80,11 +80,12 @@ public class TextBox {
 		}
 	}
 
-	// Loads one character from the text buffer. 
-	// If all text is shown, increment the click-to-continue timer. 
+	/*	Loads one character from the text buffer. 
+		If all text is shown, increment the click-to-continue timer. 
+		Polled once per frame. */
 	public void displayOneCharacter() {
 		if ((show) && (textBufferIndex < textBuffer.length())) {
-			displayText = displayText+ textBuffer.substring(textBufferIndex,textBufferIndex+1);
+			displayText = displayText + textBuffer.substring(textBufferIndex,textBufferIndex+1);
 			textBufferIndex++;
 			ctc_timer = 0;
 		} else {
@@ -92,21 +93,21 @@ public class TextBox {
 		}
 	}
 
-	// Splits a string into lines, not breaking up words.
-	// Note: Not height safe. Don't push your luck.
+	/*Splits a string into lines, not breaking up words.
+	  Note: Not height safe. Don't push your luck.*/
 	private String splitByLine(String instring) {
 		String[] splitString = instring.split(" ");
+
 		int numLines = 1;
 		String outstring = splitString[0];
-
 		for (int i = 1; i < splitString.length; i++) {
 			// if the current string plus the next word is shorter than 
 			// the width of the textbox, add it
 			if ( (outstring + " " + splitString[i]).length() <  (width / fontwidth)*numLines)
-				outstring = outstring + " " + splitString[i];
+				outstring += " " + splitString[i];
 			else {
 				// otherwise, add a new line
-				outstring = outstring.trim() + "\n"+splitString[i];
+				outstring += "\n"+splitString[i];
 				numLines++;
 			}
 		}
@@ -118,7 +119,9 @@ public class TextBox {
 		if (show) {
 			background.moveTo(x,y);
 			background.stamp();
-			if (ctc_timer>ctc_timeout) {
+			
+			if (ctc_timer > ctc_timeout) { 
+				// timeout has passed, show ctc prompt
 				font.draw(x+8,y+8, displayText+" ^");
 			} else {
 				font.draw(x+8,y+8, displayText);
@@ -134,22 +137,26 @@ public class TextBox {
 		show = false;
 	}
 
-	// Whenever the player hits the Interact key
+	/*Whenever the player hits the Interact key, this runs.
+	  Determines whether the next line will be shown or
+	  the text will finish fast-typing.
+	*/
 	public void onInteract() {
 		isDialogue = show;
 
 		if (slowText) {
-			// enough time has passed that you can click to continue
-			if ((ctc_timer>ctc_timeout)) { 
-				nextLine();
 
-			// the line is still going, but you can fast-finish it
-			} else if ((textBufferIndex < textBuffer.length())) { 
+			// timer hasn't timed out and the text buffer 
+			// has not been fully displayed
+			if ((ctc_timer<ctc_timeout) && (textBufferIndex < textBuffer.length())) { 
 				setTextFastDisplay(textBuffer);
 				ctc_timer = 0;
+			} else {
+				// enough time has passed that you can click to continue
+				nextLine();
 			}
 
-		} else { // automatically ctcs
+		} else { // click to continue
 			nextLine();
 		}
 	}
@@ -174,8 +181,10 @@ public class TextBox {
 		}
 	}
 
-	// "Primes" the dialogue box.
-	// Note that nothing will show at first. 
+	/* "Primes" the dialogue box.
+	   Note that nothing will show at first. 
+	   nextLine() must be called to show dialogue. 
+	*/
 	public void addMultipleLines(String lines) {
 
 		String[] allLines = lines.split("/");
@@ -188,11 +197,13 @@ public class TextBox {
 
 
 	// Initialize the fonts (currently just the English font)
-  static void initFonts() {
-      GFStamp[] glyphs;
-      glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
-      englishFont = new GFFont(glyphs,
-        "abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
-  }
+	// and create the textbox
+  	static void initText() {
+		GFStamp[] glyphs;
+		glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
+		englishFont = new GFFont(glyphs,
+			"abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
+		dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
+  	}
 
 }

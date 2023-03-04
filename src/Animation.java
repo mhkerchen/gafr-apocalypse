@@ -48,14 +48,21 @@ public class Animation{
 	}
 
 	// Populates the defaultAnimations map, from animations.txt. 
-	public static void initializeAnimations() throws FileNotFoundException {
-		String[] animationLines = Readers.splitFileNewline(GFU.loadTextFile("assets/image_indexes/animations.txt"));
+	public static void initializeAnimations() {
+		String[] animationLines;
+		try {
+			animationLines = Reader.splitFileNewline(GFU.loadTextFile("assets/image_indexes/animations.txt"));
+		} catch (Exception e ) {
+			animationLines = new String[0];
+			System.out.println("Error: file animations.txt not found.");
+		}
+		
 		String[] args;
 
 		for (int i = 0; i < animationLines.length; i++) {
 
-			if (Readers.lineValid(animationLines[i])) {
-				args = Readers.splitLineStr(animationLines[i]);
+			if (Reader.lineValid(animationLines[i])) {
+				args = Reader.splitLineStr(animationLines[i]);
 				// Format: NAME, NUMBER, PERIOD_FRAMES, REPEAT, {IMAGES}
 
 				defaultAnimations.put(args[0], new Animation(metaToArr(args[4]), Integer.parseInt(args[2]), Boolean.parseBoolean(args[3])));
@@ -67,7 +74,7 @@ public class Animation{
 	// Turns the metadata into a comma separated array.
 	// NOT the same as the metadata reader for Props!!!
 	public static String[] metaToArr(String meta) {
-		return Readers.splitLineStr(meta.trim().substring(1, meta.length()-1));
+		return Reader.splitLineStr(meta.trim().substring(1, meta.length()-1));
 
 	}
 

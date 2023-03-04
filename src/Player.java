@@ -19,32 +19,27 @@ public class Player {
 	public static Player robot;
 	public static Player cur; // either human or rover, depending
 
-  public static int imageIndex = 300;
+  public static int imageIndex = 300; // used in texture indexing
+  public static boolean robot_unlocked = false;
 
-  
+  public static final int INITIAL_TIMEOUT = 18;
+  public static final int DEFAULT_TIMEOUT = 10;
   public static int keyTimeout = -1;
-
   public static String isPressed = "none";
 
-  public static int INITIAL_TIMEOUT = 18;
-  public static int DEFAULT_TIMEOUT = 10;
-
-  // static variables
-  public int x = 2;
-  public int y = 2;
+  // non static variables
+  public int x = 0;
+  public int y = 0;
   public GFStamp img;
   public String prefix;
   public String imgname;
   public int dir = 0;
-
-  public Animation animation;
-
   public boolean show = false;
+
+  //public Animation animation;
 
 
 	public Player(String type, String new_prefix) {
-		//createImgs(new GFTexture(texture_filename));
-		
     
     if (type.equals("player")) {
       show = true;
@@ -52,18 +47,15 @@ public class Player {
     
     this.prefix = new_prefix;
     this.loadTextures("assets/image_indexes/characters/"+type+".txt");
-
     this.setImg("FACE_DOWN");
-
-    //this.animation = new Animation();
 	}
 
   public static void initPlayers() {
     
     human = new Player("player", "HUMAN");
     robot = new Player("robot", "ROBOT");
-    cur = human;
 
+    cur = human;
 
   }
 
@@ -76,7 +68,7 @@ public class Player {
     // split data into lines
     String[] textureLines;
     try {
-      textureLines = Readers.splitFileNewline(GFU.loadTextFile(filename));
+      textureLines = Reader.splitFileNewline(GFU.loadTextFile(filename));
     } catch (Exception e) {
       System.out.println("Error opening file \""+filename+"\".");
       textureLines = null;
@@ -93,11 +85,10 @@ public class Player {
     int tempy;
 
     for (int i = 0; i < textureLines.length; i++) {
-      args = Readers.splitLineStr(textureLines[i]);
+      args = Reader.splitLineStr(textureLines[i]);
       tempx = Integer.parseInt(args[1]);
       tempy = Integer.parseInt(args[2]);
       
-
       Game.addTile(imageIndex, this.prefix+"_"+args[0], images[tempx][tempy]);
       imageIndex++;
 
@@ -124,22 +115,22 @@ public class Player {
 
   public GFStamp getImg() {
     
-    if (this.img == null) {
-      System.out.println("Character image is null");
-    }
     if (show && (this.img != null)) {
       return this.img;
+    }
+    else if (this.img == null) {
+      System.out.println("Character image is null");
     }
     return Game.textures.get(Game.translate("NOTHING"));
   }
 
-  public void setImg(String imgnamen) {
-    this.imgname = this.prefix +"_"+imgnamen;
+  public void setImg(String new_imgname) {
+    this.imgname = this.prefix +"_"+new_imgname;
     if (Game.tileDict.containsKey(imgname)) {
       this.img = Game.textures.get(Game.translate(imgname));
     } else {
       System.out.println("WARNING: no image \""+imgname+"\" found.");
-      this.img = null;
+      this.img = Game.textures.get(Game.translate("NOT_FOUND"));
     }
   }
 
@@ -167,7 +158,7 @@ public class Player {
   void movePlayer(int dx, int dy) {
       x += dx;
       y += dy;
-	    //Sfx.SOUND_STEP.play();
+	    Sfx.playStep();
       Fog.clearFog(x, y);
 
   }
@@ -191,8 +182,8 @@ public class Player {
 
   /*
   Attempt to perform a manual action
-  When the player hits the touch action button (default Space and/or Enter) check for and execute any
-  touch actions. 
+  When the player hits the touch action button (default Space or Enter) 
+  check for and execute any touch actions. 
   */
   public void touchAction() {
     // on tile:
@@ -218,17 +209,16 @@ public class Player {
   }
 
   public void pollMove() {
-    String key;
-    int timeout;
     if ( !isPressed.equals("none")) { // provided some key is pressed down
 
-      if (keyTimeout < 0) { // this is a "fresh press", so move and start the countdown
+      if (this.keyTimeout < 0) { 
+        // this is a "fresh press", so move and start the countdown
 
         this.goDir(isPressed);
-        keyTimeout = DEFAULT_TIMEOUT;
+        this.keyTimeout = DEFAULT_TIMEOUT;
 
       } else { // decrement the timer
-        keyTimeout--;
+        this.keyTimeout--;
       }
 
     } else if (keyTimeout > 0 ) { 
@@ -247,10 +237,6 @@ public class Player {
         faceChar("left");
         if (tryMove(-1,0)) {
           tryAction(x, y); // run an overlap action after moving
-        } else {
-          ;
-          //tryTouchAction(x,y); // run a touch action if you don't move
-          // undecided
         }
       }
       if (dir.equals("right") || dir.equals("keyRight")) {

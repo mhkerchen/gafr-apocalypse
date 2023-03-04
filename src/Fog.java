@@ -15,28 +15,13 @@ import java.lang.Math;
 public class Fog {
 
     public static int fogOfWar[][] = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
-    static HashMap<String, Integer> mapIndexConnections = new HashMap<String, Integer>();
 
 
-	public static void initFog() {
-		
-		Fog.mapIndexConnections.put("assets/maps/dungeon_map", 0);
-		Fog.mapIndexConnections.put("assets/maps/dungeon_map_2", 1);
-		Fog.mapIndexConnections.put("assets/maps/newmap", 2);
-		Fog.mapIndexConnections.put("assets/maps/dungeon_map_3", 3);
-		Fog.mapIndexConnections.put("assets/maps/hub", 4);
-		Fog.mapIndexConnections.put("assets/maps/001", 5);
-		Fog.mapIndexConnections.put("assets/maps/002", 6);
-		Fog.mapIndexConnections.put("assets/maps/003", 7);
-		Fog.mapIndexConnections.put("assets/maps/004", 8);
-	}
 
 	public static void loadFog(String filename) {
 
-
-      fogOfWar = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
-      
-      
+    fogOfWar = new int[Game.GRID_WIDTH][Game.GRID_HEIGHT];
+    
 	}
 
 	public static void clearFog() {
@@ -49,21 +34,21 @@ public class Fog {
 		// clear the first inner ring
 		// it's all fog A, so give the game a break
 		for ( x = charX-1; x <= charX+1; x++) {
-		for ( y = charY-1; y <= charY+1; y++) {
-			revealFogA(charX, charY, x, y);
-		}
+      for ( y = charY-1; y <= charY+1; y++) {
+        revealFogA(charX, charY, x, y);
+      }
 		}
 		// clear the middle ring
 		for ( x = charX-2; x <= charX+2; x++) {
-		for ( y = charY-2; y <= charY+2; y++) {
-			clearFogFromTile(charX, charY, x, y);
-		}
+      for ( y = charY-2; y <= charY+2; y++) {
+        clearFogFromTile(charX, charY, x, y);
+      }
 		}
 		// clear the outermost ring
 		for ( x = charX-3; x <= charX+3; x++) {
-		for ( y = charY-3; y <= charY+3; y++) {
-			clearFogFromTile(charX, charY, x, y);
-		}
+      for ( y = charY-3; y <= charY+3; y++) {
+        clearFogFromTile(charX, charY, x, y);
+      }
 		}
 	}
 
@@ -72,10 +57,10 @@ public class Fog {
 	// clears the fog from a tile
 	private static boolean showTile(int x, int y) {
 		if (Game.isValidTile(x,y)) {
-		Fog.fogOfWar[x][y] = 1;
-		return true;
+      Fog.fogOfWar[x][y] = 1;
+      return true;
 		}
-		return false;
+		  return false;
 	}
 
 	  // Fog type A tiles are those in the immediate 8 squares around the player
@@ -87,7 +72,6 @@ public class Fog {
  
   private static void revealFogB(int charX, int charY, int x, int y) {
     if (  (Math.abs(charY - y) <= 1)  &&  (!(Math.abs(charX-x) <= 1))) {
-
 
       // the tile is along the horizontal axis relative to the player
       if ( (charX - x) < 0) {
