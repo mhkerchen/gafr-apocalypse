@@ -467,7 +467,7 @@ public class Game extends GFGame
       grid[Player.cur.x][Player.cur.y] = editModePlaceIcon;
     } else {
       editModeProps = editModeProps + "\n"+ tileDict.getKey(editModePlaceIcon) + ","+ Player.cur.x +","+ Player.cur.y +",{}";
-      editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y));
+      editModeGhostProps.add(new Prop(1,editModePlaceIcon,Player.cur.x,Player.cur.y,"{}"));
     }
   }
 

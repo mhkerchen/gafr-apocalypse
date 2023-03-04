@@ -27,14 +27,16 @@ public class Prop {
   // Metadata, if any, is put in separately with the setMetadata argument.
 
   
-  public Prop(int inid, int inicon, int inx, int iny) {
+  public Prop(int inid, int inicon, int inx, int iny, String metadata_raw) {
       id = inid; 
       icon = inicon;
       x = inx;
       y = iny;
-      metadata = new HashMap<String, String>();
       hasMetadata = false;
       exists = true;
+
+      metadata = new HashMap<String, String>();
+      this.setMetadata(metadata_raw);
   }
 
   // GETTERS/SETTERS
@@ -99,7 +101,6 @@ public class Prop {
 
 
     // Processes a piece of metadata. 
-    // Also required for things such as 
     public void setMetadata(String metadata_raw) {
       
       // cut off the {} and remove any whitespace
@@ -185,9 +186,10 @@ public class Prop {
             i,
             Game.translate(Integer.parseInt(args[0])),
             Integer.parseInt(args[1]),
-            Integer.parseInt(args[2])
+            Integer.parseInt(args[2]),
+            args[3]
             );
-            newProps[i].setMetadata(args[3]);
+            //newProps[i].setMetadata(args[3]);
         } catch (Exception e) {
           if (Game.tileDict.containsKey(args[0])) { 
 
@@ -196,9 +198,10 @@ public class Prop {
               i,
               Game.translate(args[0]),
               Integer.parseInt(args[1]),
-              Integer.parseInt(args[2])
+              Integer.parseInt(args[2]),
+              args[3]
               );
-              newProps[i].setMetadata(args[3]);
+              //newProps[i].setMetadata(args[3]);
 
           } else {
             // preset id given
@@ -236,7 +239,8 @@ public class Prop {
           i,
           Game.tileDict.get(args[1]),
           Integer.parseInt(lineParser[1].trim()),
-          Integer.parseInt(lineParser[2].trim())
+          Integer.parseInt(lineParser[2].trim()),
+          args[2]
           );
       } else { 
         // Name of the icon is not valid. Defaults to nothing.
@@ -245,13 +249,14 @@ public class Prop {
           i,
           Game.translate("NOTHING"),
           Integer.parseInt(lineParser[1].trim()),
-          Integer.parseInt(lineParser[2].trim())
+          Integer.parseInt(lineParser[2].trim()),
+          args[2]
           );
         System.out.println("Warning: No icon given for prop \""+key+"\".");
       }
 
       //custom.setMetadata(lineParser[3].trim());
-      custom.setMetadata(args[2]);
+      //custom.setMetadata(args[2]);
 
     } else {
       System.out.println("No prop with name '"+key+"' found.");
