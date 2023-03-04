@@ -51,7 +51,7 @@ public class Animation{
 	public static void initializeAnimations() {
 		String[] animationLines;
 		try {
-			animationLines = Reader.splitFileNewline(GFU.loadTextFile("assets/image_indexes/animations.txt"));
+			animationLines = Reader.splitFileNewline(GFU.loadTextFile("assets/data/animations.txt"));
 		} catch (Exception e ) {
 			animationLines = new String[0];
 			System.out.println("Error: file animations.txt not found.");

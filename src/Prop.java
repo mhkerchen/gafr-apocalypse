@@ -263,7 +263,7 @@ public class Prop {
 
   // Determines which props are impassable. 
   public static void readImpassableProps() {
-    String[] lines = GFU.loadTextFile("assets/image_indexes/impassible_props.txt").split("\n");
+    String[] lines = GFU.loadTextFile("assets/data/impassable_props.txt").split("\n");
     for (int i = 0; i < lines.length-1; i++) {
       impassableProps.add(Game.translate(lines[i].trim()));
     }
@@ -273,7 +273,7 @@ public class Prop {
   public static void initializeProps() {
     
     readImpassableProps();
-    String[] propLines = Reader.splitFileNewline(GFU.loadTextFile("assets/defaultprops.txt"));
+    String[] propLines = Reader.splitFileNewline(GFU.loadTextFile("assets/data/defaultprops.txt"));
     defaultProps = new String[propLines.length][3];
 
     for (int i = 0; i < propLines.length; i++) {

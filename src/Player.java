@@ -46,7 +46,7 @@ public class Player {
     }
     
     this.prefix = new_prefix;
-    this.loadTextures("assets/image_indexes/characters/"+type+".txt");
+    this.loadTextures("assets/data/characters/"+type+".txt");
     this.setImg("FACE_DOWN");
 	}
 

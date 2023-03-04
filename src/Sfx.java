@@ -2,6 +2,8 @@ import GaFr.GFSound;
 import java.util.*;
 
 public class Sfx {
+
+    public static int stepNum = 0;
     public static int bgmDuration = 5*60 + 6; // 5 minutes 6 seconds
 
     public static GFSound STEP = new GFSound("assets/sounds/step.mp3");

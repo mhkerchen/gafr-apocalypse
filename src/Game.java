@@ -58,7 +58,7 @@ public class Game extends GFGame
       s.centerPin();
     }
     
-    indexTextures("assets/image_indexes/tiles", tileImages); // initializes tileDict
+    indexTextures("assets/data/tiles", tileImages); // initializes tileDict
 
     Sfx.BGM.play();
 
