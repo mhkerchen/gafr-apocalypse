@@ -1,4 +1,4 @@
-GLYPH_GLOWIER,5,1,{examine:you've never seen a symbol like this before./it fills you with unease.}
+GLYPH_GLOWIER,5,1,{examine:you've never seen a symbol like this before./it fills you with dread.}
 POINT_OF_INTEREST,3,2,{examine:this door leads to the very first level.}
 DOOR_OPEN,2,2,{destination:001}
 POINT_OF_INTEREST,3,4,{examine:this door leads to level 002}

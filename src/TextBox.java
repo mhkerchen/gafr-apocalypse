@@ -22,6 +22,8 @@ public class TextBox {
 	public int ctc_timer = 0;
 	public boolean show = false;
 
+	public boolean continueFlash = false;
+
     static TextBox dialogueBox;
     static boolean isDialogue = false; // freezes input/output
 
@@ -122,7 +124,16 @@ public class TextBox {
 			
 			if (ctc_timer > ctc_timeout) { 
 				// timeout has passed, show ctc prompt
-				font.draw(x+8,y+8, displayText+" ^");
+				//updateCount
+				if (Game.updateCount%60 == 0) {
+					continueFlash = !continueFlash;
+				}
+
+				if (continueFlash) {
+					font.draw(x+8,y+8, displayText+" ^");
+				} else {
+					font.draw(x+8,y+8, displayText+" ~");
+				}
 			} else {
 				font.draw(x+8,y+8, displayText);
 			}
@@ -202,7 +213,7 @@ public class TextBox {
 		GFStamp[] glyphs;
 		glyphs = new GFTexture("assets/fonts/bittext.png", 0xff000000, 0xffffffff).splitIntoTilesBySize(12,22);
 		englishFont = new GFFont(glyphs,
-			"abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% --ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
+			"abcdefghijklmnopqrstuvwxyz                          ?!.,-:()1234567890#*'^% ~-ABCDEFGHIJKLMNOPQRSTUVWXYZ" );
 		dialogueBox = new TextBox(0, 400, 800-16, 100-16, englishFont);
   	}
 

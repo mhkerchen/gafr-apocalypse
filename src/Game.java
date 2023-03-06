@@ -1,4 +1,4 @@
-//https://rhea.sockette.net:5050/~kerch22m/WWW/proj1/
+//https://rhea.sockette.net:5050/~kerch22m/WWW/ancient/
 
 import GaFr.GFGame;
 import GaFr.GFStamp;
@@ -38,7 +38,8 @@ public class Game extends GFGame
     static int[] editModeTiles; // all valid tiles, as cycled through in editmode
     // static variables and grids
     public static int grid[][] = new int[GRID_WIDTH][GRID_HEIGHT];
-    
+
+    public static int updateCount = 0;
 
     // error screen
     static boolean beRightBack = false;
@@ -66,7 +67,7 @@ public class Game extends GFGame
 
     Animation.initializeAnimations(); // depends on tileDict being initialized
     
-    getValidTiles(textures);
+    getValidTiles(textures); // depends on tileDict
 
     Prop.initializeProps();
     
@@ -301,7 +302,7 @@ public class Game extends GFGame
   // I/O FUNCTIONS
 
   public void onKeyDown(String key, int code, int flags) {
-  switch(code) {
+    switch(code) {
       case GFKey.A:
       case GFKey.ArrowLeft: {
         Player.isPressed = "keyLeft";
@@ -489,8 +490,7 @@ public class Game extends GFGame
 
   // DRAW FUNCTIONS
 
-  static void drawGrid()
-  {
+  static void drawGrid() {
     GFStamp s;
     for (int y = 0; y < GRID_HEIGHT; y++) {
       for (int x = 0; x < GRID_WIDTH; x++) {
@@ -578,16 +578,21 @@ public class Game extends GFGame
 
   @Override
   public void onUpdate() {
+    updateCount++;
     Player.cur.pollMove();
+    
+    if ( ((updateCount) % (Sfx.bgmDuration*60)) == 0) {
+      Sfx.BGM.play();
+    }
+    if (updateCount%2 == 0) {
+      TextBox.dialogueBox.displayOneCharacter();
+    }
+    Animation.pollAnimations();
   }
 
   @Override
   public void onDraw (int frameCount)
   {
-    
-    if ( ((frameCount) % (Sfx.bgmDuration*60)) == 0) {
-      Sfx.BGM.play();
-    }
     if (beRightBack) {
       cryBabyScreen.moveTo(0,0);
       cryBabyScreen.stamp();
@@ -596,14 +601,10 @@ public class Game extends GFGame
       if (editMode) {
         drawGhostProps();
       } 
-      Animation.pollAnimations();
       drawProps();
       drawPlayer();
       drawText();
       drawUI();
-      if (frameCount%2 == 0) {
-        TextBox.dialogueBox.displayOneCharacter();
-      }
     }
 
   }

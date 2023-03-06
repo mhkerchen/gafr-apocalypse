@@ -311,6 +311,9 @@ public class Prop {
     if (this.metadata.containsKey("destination")) {
       this.doDestination();
     } 
+    if (this.metadata.containsKey("powercore")) {
+      this.doPowerCore();
+    } 
     if (this.metadata.containsKey("pickup_item")) {
       if (Inventory.addToInventory(metadata.get("pickup_item"))) {
         // successful add, hide this item
@@ -485,6 +488,27 @@ public class Prop {
       }
       return true;
       
+  }
+
+  public void doPowerCore() {
+    if (this.metadata.get("powercore") == "true") {
+      // it's currently powered, and the powercore can be removed
+      if (Inventory.addToInventory("powercore")) {
+        this.metadata.put("powercore", "false");
+      } else {
+        TextBox.dialogueBox.addMultipleLines("you can't do that.");
+      }
+    } else {
+      // TODO checks if you have a powercore, and will put it in
+    }
+
+    // call condsignal
+  }
+
+  // basically, does exactly the same as signal,
+  // but change it so it is compatible with non levers
+  public void doCondSignal() {
+    ;
   }
 
 
