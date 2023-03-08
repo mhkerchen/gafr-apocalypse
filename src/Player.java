@@ -21,10 +21,11 @@ public class Player {
 
   public static int imageIndex = 300; // used in texture indexing
   public static boolean robot_unlocked = false;
+  public static boolean can_swap = false;
 
-  public static final int INITIAL_TIMEOUT = 18;
+  public static final int INITIAL_TIMEOUT = 12;
   public static final int DEFAULT_TIMEOUT = 10;
-  public static int keyTimeout = -1;
+  public static int keyTimeout = -5;
   public static String isPressed = "none";
 
   // non static variables
@@ -211,11 +212,17 @@ public class Player {
   public void pollMove() {
     if ( !isPressed.equals("none")) { // provided some key is pressed down
 
-      if (this.keyTimeout < 0) { 
-        // this is a "fresh press", so move and start the countdown
+      if (this.keyTimeout < 0) { // time to move in any event
 
         this.goDir(isPressed);
-        this.keyTimeout = DEFAULT_TIMEOUT;
+        if (this.keyTimeout==-5) {
+          // this is a "fresh press", so move and start the countdown
+          this.keyTimeout = INITIAL_TIMEOUT;
+        } else {
+          // a repeat press
+          this.keyTimeout = DEFAULT_TIMEOUT;
+        }
+        
 
       } else { // decrement the timer
         this.keyTimeout--;
@@ -223,7 +230,7 @@ public class Player {
 
     } else if (keyTimeout > 0 ) { 
       // reset the timer, to wait for another key press
-      keyTimeout = -1;
+      keyTimeout = -5;
     }
 
 

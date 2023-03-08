@@ -30,4 +30,8 @@ public class Inventory {
     }
   }
 
+  public static boolean contains(String item) {
+    return (playerInventory.contains(item));
+  }
+
 }

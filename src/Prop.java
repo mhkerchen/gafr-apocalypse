@@ -3,6 +3,8 @@ import GaFr.GFU;
 
 public class Prop { 
 
+  //public static final String[] SIGNAL_TAGS = {"powercore", "lever"};
+
   int id;
   int icon;
   int x;
@@ -29,7 +31,7 @@ public class Prop {
   
   public Prop(int inid, int inicon, int inx, int iny, String metadata_raw) {
       id = inid; 
-      icon = inicon;
+      setImg(inicon);
       x = inx;
       y = iny;
       hasMetadata = false;
@@ -43,17 +45,17 @@ public class Prop {
 
   
 
-
-  public void addMetadataKey(String key, String value) {
-    this.metadata.put(key, value);
-  }
-  
   public String[] getAttribute(String key) {
     String[] temp = this.metadata.get(key).split(",");
     for (int i = 0; i < temp.length; i++) {
       temp[i] = temp[i].trim();
     }
     return temp;
+  }
+
+  public void putAttribute(String key, String attr) {
+    this.metadata.put(key, attr);
+
   }
 
   public int getX() {
@@ -74,6 +76,24 @@ public class Prop {
       return animation.getImg();
     }
     return this.icon;
+  }
+
+  public void setImg(String img) {
+    this.icon = Game.translate(img);
+    if (impassableProps.contains( this.icon )) {
+      this.isPassable = false;
+    } else {
+      this.isPassable = true;
+    }
+  }
+
+  public void setImg(int img) {
+    this.icon = img;
+    if (impassableProps.contains( this.icon )) {
+      this.isPassable = false;
+    } else {
+      this.isPassable = true;
+    }
   }
 
   public boolean canPass() {
@@ -112,7 +132,7 @@ public class Prop {
       // no metadata to be added
       if (metadata_raw == null || metadata_raw.equals("")) {
         if (metadata.size() == 0) {
-          addMetadataKey("none", "true");
+          putAttribute("none", "true");
           this.hasMetadata = false;
         }
 
@@ -123,7 +143,7 @@ public class Prop {
 
         for (int i = 0; i < metadataArray.length; i++) {
           pairArray = metadataArray[i].split(":");
-          addMetadataKey(pairArray[0].trim(), pairArray[1].trim());
+          putAttribute(pairArray[0].trim(), pairArray[1].trim());
         }
         
         this.hasMetadata = true;
@@ -152,6 +172,10 @@ public class Prop {
         this.isPassable = false;
       }
 
+      // set signals appropriately
+      assertSignal();
+      
+
     }
 
 
@@ -166,7 +190,7 @@ public class Prop {
   public static void readProps(String filename) {
     String propsString = "";
     try {
-      propsString = GFU.loadTextFile(filename);
+      propsString = GFU.loadTextFile(filename+"\n"); /// TODO the \n is a lazy fix
     } catch (Exception e) {
       System.out.println("Could not read props from "+filename);
     }
@@ -311,9 +335,6 @@ public class Prop {
     if (this.metadata.containsKey("destination")) {
       this.doDestination();
     } 
-    if (this.metadata.containsKey("powercore")) {
-      this.doPowerCore();
-    } 
     if (this.metadata.containsKey("pickup_item")) {
       if (Inventory.addToInventory(metadata.get("pickup_item"))) {
         // successful add, hide this item
@@ -336,11 +357,11 @@ public class Prop {
     if (this.metadata.containsKey("examine") ) {
       this.doExamine();
     }
-    /*if (this.metadata.containsKey("inventory") ) {
-      System.out.println(this.metadata.get("inventory"));
-    }*/
-    if (this.metadata.containsKey("signal")) {
-      this.doSignal();
+    if (this.metadata.containsKey("lever")) {
+      this.doLever();
+    }
+    if (this.metadata.containsKey("powercore")) {
+      this.doPowercore();
     }
 
     return;
@@ -365,7 +386,7 @@ public class Prop {
         this.metadata.put("unlocked", "its_open");
         this.isPassable = true;
         Sfx.KEYCARD_SUCCESS.play();
-        this.icon = this.icon - 1; // The standard for switching to the "unlocked" version.
+        this.setImg(this.icon - 1) ; // The standard for switching to the "unlocked" version.
       }
       return true;
 
@@ -377,29 +398,88 @@ public class Prop {
 
   }
 
-
-  public void doSignal() {
-    // metadata format: signalcolor, offimage, onimage
-    String[] args = getAttribute("signal");
-    
-    // it's on, turn it off
-    if (signals.contains(args[0])) {
-      signals.remove(args[0]);
-      signals.add("NOT_"+args[0]);
-
-      this.icon = Game.translate(args[1]);
-      Sfx.LEVER_OFF.play();
-
-    // it's off, turn it on
-    } else {
-      signals.add(args[0]);
-      signals.remove("NOT_"+args[0]);
-
-      this.icon = Game.translate(args[2]);
+  public void doLever() {
+    String[] cursig = getAttribute("signal"); // COLOR, is_on
+    String[] args = getAttribute("lever"); // OFF, ON
+    if (cursig[1].equals("false")) {
+      // flip the lever to ON
+      this.setImg(args[1]);
       Sfx.LEVER_ON.play();
+      this.putAttribute("signal", cursig[0]+",true");
+
+    } else {
+      // flips the lever to OFF
+      this.setImg(args[0]);
+      Sfx.LEVER_OFF.play();
+      this.putAttribute("signal", cursig[0]+",false");
 
     }
+    assertSignal(); // sets the signal
+  }
+
+  public void doPowercore() {
+    String[] cursig = getAttribute("signal"); // COLOR, is_on
+    String[] args = getAttribute("powercore"); // OFF, ON, contains_core
+
+
+    if (cursig[1].equals("false")) {
+      // does not contain core. try to add core and turn on core
+      System.out.println("Lacks core");
+      if (Inventory.inventoryTake("powercore")) {
+        this.setImg(args[1]);
+        Sfx.POWERCORE.play(); // TODO
+        this.putAttribute("signal", cursig[0]+",true");
+        assertSignal(); // sets the signal
+      } else {
+        TextBox.dialogueBox.addMultipleLines("you need something to power this.");
+        TextBox.dialogueBox.nextLine();
+      }
+
+    } else if (cursig[1].equals("true")) {
+      // contains core, take core and turn off 
+      if (Inventory.addToInventory("powercore")) {
+        this.setImg(args[0]);
+        Sfx.POWERCORE.play(); // TODO
+        this.putAttribute("signal", cursig[0]+",false");
+        assertSignal(); // sets the signal
+      } else {
+        TextBox.dialogueBox.addMultipleLines("your inventory is full.");
+        TextBox.dialogueBox.nextLine();
+      }
+      
+    }
+  }
+
+  // Sets the given signal to the given state.
+  public void setSignal(String signal, boolean state) {
+    if (signals.contains(signal)) {
+      signals.remove(signal);
+    } else {
+      if (signals.contains("NOT_"+signal))
+      signals.remove("NOT_"+signal);
+    }
+    
+    if (state) {
+      signals.add(signal);
+      this.metadata.put("signal", signal+",true");
+    } else {
+      signals.add("NOT_"+signal);
+      this.metadata.put("signal", signal+",false");
+    }
+
+    
     allSignalsUpdate();
+  }
+
+
+  // Asserts the signal contained in the metadata 
+  // into the signals list.
+  public void assertSignal() {
+    if (this.metadata.containsKey("signal")) {
+      String[] args = getAttribute("signal"); // COLOR, is_true
+      setSignal(args[0], Boolean.parseBoolean(args[1]));
+    }
+
   }
   
   public static void allSignalsUpdate() {
@@ -411,6 +491,7 @@ public class Prop {
       if (props[i].metadata.containsKey("gate_control")) {
         props[i].updateGate();
       }
+      // add as necessary
     }
   }
 
@@ -452,12 +533,12 @@ public class Prop {
     if (signals.contains(metastr[0].trim())) {
       // signal is ON, switch to OPEN_IMG and set isPassable = true
       // TODO: add support for integer version also
-      this.icon = Game.translate(metastr[2].trim());
+      setImg(Game.translate(metastr[2].trim())) ;
       this.isPassable = true;
 
     } else {
       // signal is OFF, switch to CLOSED_IMG and set isPassable = false
-      this.icon = Game.translate(metastr[1].trim());
+      setImg(Game.translate(metastr[1].trim())) ;
       this.isPassable = false;
     }
 
@@ -490,7 +571,9 @@ public class Prop {
       
   }
 
-  public void doPowerCore() {
+/*
+  public void doPowercore() {
+    String[] args = getAttribute("signal");
     if (this.metadata.get("powercore") == "true") {
       // it's currently powered, and the powercore can be removed
       if (Inventory.addToInventory("powercore")) {
@@ -499,18 +582,14 @@ public class Prop {
         TextBox.dialogueBox.addMultipleLines("you can't do that.");
       }
     } else {
-      // TODO checks if you have a powercore, and will put it in
+      if (Inventory.inventoryTake("powercore")) {
+        this.metadata.put("powercore", "true");
+      } else {
+        TextBox.dialogueBox.addMultipleLines("you can't do that.");
+      }
     }
 
-    // call condsignal
-  }
-
-  // basically, does exactly the same as signal,
-  // but change it so it is compatible with non levers
-  public void doCondSignal() {
-    ;
-  }
-
+  }*/
 
 
   // Determine if there is a prop at position x,y.

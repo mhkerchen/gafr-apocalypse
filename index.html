@@ -19,32 +19,21 @@ canvas
   display: block;
   position: absolute;
 }
-#spinner
+/* thanks to https://www.w3schools.com/howto/howto_css_image_center.asp */
+.loadinggif
 {
-  border: 16px solid #6611aa;
-  border-top: 16px solid #331188;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  animation: spin 2s linear infinite;
-
-  padding: 0;
-  margin: auto;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: block;
-  position: absolute;
-}
-@keyframes spin
-{
-  100% { transform: rotate(360deg); }
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  height: 50%;
 }
 </style>
 </head>
 <body bgcolor="#1a1020" oncontextmenu="return false;">
-<div id="spinner"></div>
+<div id="spinner">
+  <img src="/~kerch22m/WWW/ancient/assets/images/programming-computer-frog.gif" alt="don't forget to regularly defrog your hard drive" class="loadinggif">
+</div>
 <canvas id="canvas" width="100" height="100"></canvas>
 </body>
 <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script>

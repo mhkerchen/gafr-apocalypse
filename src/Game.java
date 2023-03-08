@@ -244,6 +244,11 @@ public class Game extends GFGame
         spawnPlayer(0,0);
       }
 
+      if (Player.robot_unlocked) {
+        spawnRobot();
+      }
+
+
   }
 
   public static void loadLevel(String filename, int spawnX, int spawnY) {
@@ -262,6 +267,14 @@ public class Game extends GFGame
     Fog.clearFog(Player.cur.x, Player.cur.y);
 
   }
+  // Spawns the robot in.
+  public static void spawnRobotInternal(int x, int y) {
+
+    Player.robot.setCharX(x);
+    Player.robot.setCharY(y);
+    Fog.clearFog(Player.robot.x, Player.robot.y);
+
+  }
 
   // Does the actual "loading of tiles" actions. 
   // Loads, in order: fog, tiles, props.
@@ -274,6 +287,28 @@ public class Game extends GFGame
       grid = readInGameMap(filename+".txt");
       System.out.println("Load props");
       Prop.readProps(filename+"_props.txt");
+
+  }
+
+
+  // Always determined by a tile
+  public static void spawnRobot() {
+    Prop currentProp = Prop.getProp(0);
+    int propIndex = 0;
+
+    while ((!currentProp.metadata.containsKey("roboport"))) {
+      propIndex++;
+      currentProp = Prop.getProp(propIndex);
+    }
+
+    if (currentProp.metadata.containsKey("roboport") ) {
+      spawnRobotInternal(currentProp.getX(), currentProp.getY());
+
+    } else {
+      System.out.println("Warning/error: no robot spawn given for file.");
+      spawnRobotInternal(0,0);
+    }
+
 
   }
 
@@ -363,6 +398,7 @@ public class Game extends GFGame
         break;
       }  
 
+      //Swap active
       case GFKey.K: {
         if (Player.cur == Player.human) {
           Player.setPlayer("robot");
@@ -370,6 +406,14 @@ public class Game extends GFGame
         else {
           Player.setPlayer("human");
         }
+        break;
+      }
+
+
+      // unlock robot
+      case GFKey.R: {
+        Player.robot_unlocked = !Player.robot_unlocked;
+        Player.robot.show = true;
         break;
       }
 
@@ -539,6 +583,13 @@ public class Game extends GFGame
       if (Player.robot.show && Player.robot_unlocked) {
         player = Player.robot.getImg();
         player.moveTo(EDGE_BUFFER+Player.robot.x*TILE_SIZE, EDGE_BUFFER+Player.robot.y*TILE_SIZE);
+        player.stamp();
+      }
+
+      if (Inventory.contains("powercore")) {
+        // draw the floating powercore, if any 
+        player = textures.get(translate("POWER_CORE_ITEM"));
+        player.moveTo(EDGE_BUFFER+Player.cur.x*TILE_SIZE, EDGE_BUFFER+(Player.cur.y-1)*TILE_SIZE);
         player.stamp();
       }
     }
