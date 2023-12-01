@@ -10,5 +10,6 @@ The game library used was a custom framework created by my professor, GaFr (http
 It's not included in this repository but is required for the game to run. The documentation of that project gives
 instructions for installing the framework. 
 
-Starting the project will put you at the testing hub, which is rather crash-prone, due to some of the test levels 
-assuming that the robot is either locked or unlocked. Enter the upper-leftmost door to play through the existing levels.
+Starting the project will put you at the testing hub. Enter the upper-leftmost door to play through the existing levels.
+(Entering any of the other doors puts you at risk of a crash: due to the robot mechanic being assumed to be unlocked for
+many of the test levels, if you enter these doors without unlocking the robot you will crash the game.)
